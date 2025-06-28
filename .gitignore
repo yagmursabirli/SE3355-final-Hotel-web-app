@@ -1,0 +1,22 @@
+# Node.js bağımlılıkları
+node_modules/
+.env
+
+# Vue.js Frontend Build Çıktısı
+frontend/dist/
+
+# Editör ve IDE dosyaları
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Log dosyaları
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# İşletim sistemi özel dosyaları
+.DS_Store
+Thumbs.db
