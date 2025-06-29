@@ -3,26 +3,121 @@ const pool = require('../db'); // Veritabanı bağlantısını içeri aktarıyor
 
 // Otelleri Listeleme İşlevi
 exports.getAllHotels = async (req, res) => {
+   console.log("getAllHotels isteği alındı.");
+  console.log("Query Parametreleri:", req.query); 
   try {
-    const { city, orderBy } = req.query;
+    const { city, name, guestCount, roomCount, orderBy, checkInDate, checkOutDate } = req.query;
 
-    let query = 'SELECT * FROM hotels';
+    let query = `
+      SELECT
+          id, name, address, image_url, amenities, rating,
+          review_count, price, discount_percentage, member_price,
+          latitude, longitude, points, unavailable_dates
+      FROM
+          hotels
+      `;
     const queryParams = [];
-    let whereClause = '';
+    let whereClauses = []; // WHERE koşullarını tutmak için dizi kullanıyoruz
+    let paramIndex = 1; //
 
     if (city) {
-      whereClause += ' WHERE city ILIKE $1';
+      whereClauses.push(`city ILIKE $${paramIndex}`);
       queryParams.push(`%${city}%`);
+      paramIndex++;
     }
 
-    if (orderBy === 'points') {
-      query += ` ${whereClause.trim() ? whereClause : ''} ORDER BY points DESC`;
-    } else {
-      query += ` ${whereClause.trim() ? whereClause : ''} ORDER BY points DESC`;
+    if (name) { // BURASI YENİ EKLENDİ: Otel adına göre filtreleme
+      whereClauses.push(`name ILIKE $${paramIndex}`);
+      queryParams.push(`%${name}%`);
+      paramIndex++;
     }
+    // YENİ EKLENEN KISIM: Misafir sayısına göre filtreleme
+    if (guestCount) {
+      whereClauses.push(`max_guests >= $${paramIndex}`);
+      queryParams.push(parseInt(guestCount));
+      paramIndex++;
+    }
+    if (roomCount) {
+      whereClauses.push(`available_rooms >= $${paramIndex}`); // Varsayım: 'available_rooms' sütunu var
+      queryParams.push(parseInt(roomCount));
+      paramIndex++;
+    }
+
+    if (whereClauses.length > 0) {
+      query += ` WHERE ${whereClauses.join(' AND ')}`; // Koşulları AND ile birleştiriyoruz
+    }
+
+     switch (orderBy) {
+      case 'rating_desc':
+        query += ` ORDER BY rating DESC`; // Puana göre azalan
+        break;
+      case 'rating_asc':
+        query += ` ORDER BY rating ASC`;   // Puana göre artan
+        break;
+      case 'price_asc':
+        query += ` ORDER BY price ASC`;    // Fiyata göre artan
+        break;
+      case 'price_desc':
+        query += ` ORDER BY price DESC`;   // Fiyata göre azalan
+        break;
+      case 'recommended': // Varsayılan olarak "önerilen" (points)
+      default:
+        query += ` ORDER BY rating DESC`; // Eğer 'points' sütununuz yoksa, 'rating DESC' gibi bir şey yapabilirsiniz.
+        break;
+    }
+    console.log("Backend SQL Sorgusu:", query); // Oluşan SQL sorgusunu loglayın
+    console.log("Backend Sorgu Parametreleri:", queryParams);
 
     const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+     // Seçilen tarihleri parse et (Frontend'den gelen tarih stringleri)
+    const parsedCheckInDate = checkInDate ? new Date(checkInDate) : null;
+    const parsedCheckOutDate = checkOutDate ? new Date(checkOutDate) : null;
+
+     const hotelsWithAvailability = result.rows.map(hotel => {
+      let isAvailable = true; // Varsayılan olarak otel müsait
+      let availabilityStatus = 'Müsait';
+      // Rezervasyon almadığımız için, eğer müsaitse tüm odaları müsait kabul edebiliriz
+      //let availableRoomsForDates = hotel.total_rooms || 0; 
+
+      // Eğer giriş ve çıkış tarihleri seçilmişse, müsait olmayan tarihlerle çakışma kontrolü yap
+      if (parsedCheckInDate && parsedCheckOutDate) {
+        if (hotel.unavailable_dates && Array.isArray(hotel.unavailable_dates)) {
+          for (const range of hotel.unavailable_dates) {
+            const unavailableStart = new Date(range.start);
+            const unavailableEnd = new Date(range.end);
+
+            // Çakışma kontrolü:
+            // İstenen aralık (A) ve müsait olmayan aralık (B)
+            // A = [parsedCheckInDate, parsedCheckOutDate]
+            // B = [unavailableStart, unavailableEnd]
+            // Çakışma var = (A.başlangıç < B.bitiş) VE (A.bitiş > B.başlangıç)
+            if (parsedCheckInDate < unavailableEnd && parsedCheckOutDate > unavailableStart) {
+              isAvailable = false; // Çakışma var, otel müsait değil
+              availabilityStatus = 'Seçilen tarihlerde uygun oda yok';
+              //
+              // availableRoomsForDates = 0; // Müsait değilse oda sayısı 0
+              break; // Bir çakışma bulmak yeterli, diğer aralıkları kontrol etmeye gerek yok
+            }
+          }
+        }
+      }
+
+      // Frontend'e gönderilecek otel nesnesini oluştur
+      return {
+        ...hotel,
+        is_available: isAvailable, // Otelin genel müsaitlik durumu (boolean)
+        //available_rooms_for_dates: availableRoomsForDates, // Müsaitse total_rooms, değilse 0
+        availability_status: availabilityStatus, // Metin mesajı
+        // Frontend'in beklediği sayısal/dizi formatlarına dönüştürmeler
+        rating: parseFloat(hotel.rating),
+        price: parseFloat(hotel.price),
+        member_price: parseFloat(hotel.member_price),
+        amenities: hotel.amenities ? hotel.amenities.split(',').map(s => s.trim()) : [],
+      };
+    });
+
+    res.json(hotelsWithAvailability);
+    //res.json(result.rows);
   } catch (err) {
     console.error('Otel listesi çekilirken hata oluştu:', err.message);
     res.status(500).send('Sunucu Hatası');
@@ -34,7 +129,8 @@ exports.getHotelById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const hotelResult = await pool.query('SELECT * FROM hotels WHERE id = $1', [id]);
+    const hotelResult = await pool.query('SELECT *, latitude, longitude FROM hotels WHERE id = $1', [id]);
+
 
     if (hotelResult.rows.length === 0) {
       return res.status(404).json({ message: 'Otel bulunamadı.' });
