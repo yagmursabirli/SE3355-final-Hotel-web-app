@@ -1,17 +1,27 @@
 <template>
   <div class="hotel-detail-page" v-if="hotel">
-    <header class="header">
+ <header class="header">
       <div class="logo">Hotels.<span class="com-text">com</span></div>
-      <nav v-if="!isLoggedIn" class="auth-links">
-        <router-link to="/login" class="login-button">Giriş yap</router-link>
-      </nav>
-      <nav v-else class="user-info">
-        <span>Merhaba, {{ userName }}</span>
-      </nav>
+      <div class="user-info"> <span v-if="isAuthenticated" class="welcome-message">
+          Merhaba, {{ userName }}
+        </span>
+        <button v-else @click="navigateToLogin" class="login-button">
+          Giriş yap
+        </button>
+        <button
+          v-if="isAuthenticated"
+          @click="handleLogout"
+          class="logout-button"
+        >
+          Çıkış Yap
+        </button>
+      </div>
     </header>
 
+
+
     <div class="hotel-hero">
-      <img :src="hotel.imageUrl || 'https://via.placeholder.com/800x400?text=Hotel+Image'" :alt="hotel.name" class="hotel-main-image">
+      <img :src="hotel.image_url || 'https://via.placeholder.com/800x400?text=Hotel+Image'" :alt="hotel.name" class="hotel-main-image">
       <h1>{{ hotel.name }}</h1>
       <p class="hotel-address">{{ hotel.address }}, {{ hotel.city }}</p>
       <div class="overall-rating">
@@ -103,10 +113,24 @@
 
     <section class="hotel-map-section">
       <h2>Haritada Konum</h2>
-      <div id="map-container" style="height: 400px; width: 100%;">
+      <div id="map-container" style="height: 250px; width: 100%; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
+        <iframe
+          v-if="hotel && hotel.latitude && hotel.longitude"
+          :src="getMapEmbedUrl"
+          width="100%"
+          height="100%"
+          frameborder="0"
+          style="border:0"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        <div v-else style="display: flex; justify-content: center; align-items: center; height: 100%; color: #777;">
+          Harita bilgisi yüklenemedi.
         </div>
+      </div>
       <p class="hotel-address-map">{{ hotel.address }}, {{ hotel.city }}, {{ hotel.country }}</p>
-      <button @click="openMapLink" class="map-link-button">Haritada göster</button>
+      <button @click="openInteractiveMapLink" class="map-link-button">Haritada göster</button>
     </section>
   </div>
   <div v-else class="loading-state">
@@ -116,8 +140,8 @@
 </template>
 
 <script>
-import axios from 'axios'; // Axios'u import etmeyi unutmayın
-import { mapGetters } from 'vuex';
+import axios from 'axios'; 
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'HotelDetail',
@@ -131,7 +155,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['isLoggedIn', 'userName']),
+    ...mapGetters(['isAuthenticated', 'userName']),
     avgRating() {
       if (this.comments.length === 0) {
         return {
@@ -152,12 +176,23 @@ export default {
         conditionRating: (sum(this.comments, 'conditionRating') / count).toFixed(1),
         environmentRating: (sum(this.comments, 'environmentRating') / count).toFixed(1),
       };
+    },
+    // Harita iframe'i için URL oluşturan computed property
+    getMapEmbedUrl() {
+      if (this.hotel && this.hotel.latitude && this.hotel.longitude) {
+        // Google Haritalar embed URL'i
+        // 'q' parametresi ile enlem, boylam ve isteğe bağlı olarak otel adı verilebilir.
+        // 'z' zoom seviyesidir.
+        return `https://maps.google.com/maps?q=${this.hotel.latitude},${this.hotel.longitude}&z=15&output=embed`;
+      }
+      return ''; // Konum bilgisi yoksa boş döner
     }
   },
   async created() {
     await this.fetchHotelDetails();
   },
   methods: {
+  ...mapActions(['logout']),
     async fetchHotelDetails() {
       this.loading = true;
       this.error = null;
@@ -165,14 +200,19 @@ export default {
         // Gerçek API'den otel bilgilerini ve yorumları çekiyoruz
         const response = await axios.get(`http://localhost:3000/api/hotels/${this.id}`);
 
-        this.hotel = response.data.hotel;
+        this.hotel = {
+          ...response.data.hotel,
+          price: parseFloat(response.data.hotel.price),
+          member_price: parseFloat(response.data.hotel.member_price),
+          amenitiesArray: response.data.hotel.amenities ? response.data.hotel.amenities.split(',').map(s => s.trim()) : [],
+          discountPercentage: parseFloat(response.data.hotel.discount_percentage),
+          totalComments: response.data.comments.length,
+          latitude: parseFloat(response.data.hotel.latitude), 
+          longitude: parseFloat(response.data.hotel.longitude)
+        };
         this.comments = response.data.comments;
 
         console.log('Otel Detayları ve Yorumlar:', this.hotel, this.comments);
-
-        this.$nextTick(() => {
-          this.initMap(); // Haritayı başlat
-        });
 
       } catch (err) {
         this.error = 'Otel bilgileri yüklenirken bir hata oluştu.';
@@ -197,31 +237,70 @@ export default {
       };
       return new Date(dateString).toLocaleDateString('tr-TR', options);
     },
-    initMap() {
-      // Google Maps API'si entegrasyonu için placeholder
-      // Gerçek bir uygulamada burada Google Maps JS API yüklenecek ve harita oluşturulacak
-      // Alternatif olarak basit bir iframe ile de gösterilebilir
-      const mapContainer = this.$el.querySelector('#map-container');
-      if (mapContainer && this.hotel && this.hotel.latitude && this.hotel.longitude) {
-        mapContainer.innerHTML = `<iframe
-          width="100%"
-          height="100%"
-          frameborder="0" style="border:0"
-          src="https://maps.google.com/maps?q=${this.hotel.latitude},${this.hotel.longitude}&z=15&output=embed"
-          allowfullscreen></iframe>`;
+    // Google Haritalar'ı etkileşimli olarak yeni bir sekmede açan metod
+    // Bu metod hala kullanılabilir ve herhangi bir API anahtarı veya ödeme gerektirmez.
+    openInteractiveMapLink() {
+      if (this.hotel && this.hotel.latitude && this.hotel.longitude) {
+        // Enlem ve boylam ile Google Haritalar'ı aç (daha kesin)
+        window.open(`https://www.google.com/maps/search/?api=1&query=${this.hotel.latitude},${this.hotel.longitude}`, '_blank');
+      } else if (this.hotel && this.hotel.address) {
+        // Adres ile Google Haritalar'ı aç (eğer enlem/boylam yoksa)
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(this.hotel.address + ', ' + this.hotel.city + ', ' + this.hotel.country)}`, '_blank');
+      } else {
+        alert('Haritada gösterilecek konum bilgisi bulunamadı.');
       }
     },
-    openMapLink() {
-      if (this.hotel && this.hotel.latitude && this.hotel.longitude) {
-        window.open(`https://maps.google.com/maps?q=${this.hotel.latitude},${this.hotel.longitude}`, '_blank');
-      }
+     // YENİ METOD: Login sayfasına yönlendirme
+    navigateToLogin() {
+      this.$router.push('/login');
+    },
+    // YENİ METOD: Çıkış yapma
+    async handleLogout() {
+      await this.logout(); // Vuex logout action'ını çağır
+      this.$router.push('/login'); 
     }
   }
 };
 </script>
 
 <style scoped>
-/* Önceki stilleriniz burada kalacak. */
+/* ... mevcut stilleriniz ... */
+
+.user-info {
+  /* user-info için de flex ekleyelim ki butonlar yan yana gelsin */
+  display: flex;
+  align-items: center;
+}
+
+.user-info .welcome-message {
+  font-weight: bold;
+  margin-right: 1rem;
+}
+
+.login-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-button {
+  background-color: #dc3545; /* Kırmızı renk */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px; /* Giriş yap/Hoş geldiniz mesajından biraz boşluk */
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+
+/* ... diğer stilleriniz ... */
 /* Yukarıda verdiğiniz tüm <style scoped> içeriğini buraya yapıştırın. */
 .hotel-detail-page {
   font-family: Arial, sans-serif;
@@ -269,7 +348,7 @@ export default {
 
 .hotel-main-image {
   width: 100%;
-  max-height: 450px;
+  max-height: 300px;
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 20px;

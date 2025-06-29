@@ -12,5 +12,6 @@ app.use(router);
 
 // Axios'u global olarak ekle (isteğe bağlı, ama pratik)
 app.config.globalProperties.$axios = axios;
+store.dispatch('initializeAuth');
 
 app.mount('#app');

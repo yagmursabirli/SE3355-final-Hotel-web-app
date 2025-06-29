@@ -1,13 +1,20 @@
 <template>
   <div id="home-view">
     <header class="header">
-      <img src="/hotels-logo.png" alt="Hotels.com Logo" class="logo" />
+      <div class="logo">Hotels.<span class="com-text">com</span></div>
       <div class="user-info">
-        <span v-if="isLoggedIn" class="welcome-message"
-          >Merhaba, {{ firstName }}</span
+        <span v-if="isAuthenticated" class="welcome-message"
+          >Merhaba, {{ userName }}</span
         >
         <button v-else @click="navigateToLogin" class="login-button">
           Giriş yap
+        </button>
+        <button
+          v-if="isAuthenticated"
+          @click="handleLogout"
+          class="logout-button"
+        >
+          Çıkış Yap
         </button>
       </div>
     </header>
@@ -49,12 +56,12 @@
         <div class="sort-options">
           <span>Sıralama ölçütü: Önerilen</span>
         </div>
-        <button @click="showOnMap" class="map-button">Haritada göster</button>
+        <button @click="showAllHotelsOnMap" class="map-button">Haritada göster</button>
       </div>
 
       <div class="hotel-cards-container">
         <div v-if="hotels.length === 0" class="no-hotels-message">
-          Otel bulunamadı veya yükleniyor...
+          Oteller yükleniyor...
         </div>
         <div v-for="hotel in hotels" :key="hotel.id" class="hotel-card">
           <img :src="hotel.image_url" :alt="hotel.name" class="hotel-image" />
@@ -96,7 +103,7 @@
               </p>
             </div>
             <div class="member-price-info">
-              <p v-if="!isLoggedIn" class="member-login-cta">
+              <p v-if="!isAuthenticated" class="member-login-cta">
                 Üye fiyatı için giriş yapın
               </p>
               <p v-else class="member-price-display">
@@ -121,6 +128,7 @@
 
 <script>
 import axios from "axios";
+import { mapGetters, mapActions } from "vuex"; // mapGetters ve mapActions import et
 
 // Diğer importlarınız (components, etc.)
 
@@ -129,8 +137,7 @@ export default {
   // components: { /* Eğer varsa */ },
   data() {
     return {
-      isLoggedIn: false, // Vuex'ten bağlanacak
-      firstName: "", // Vuex'ten bağlanacak
+      // isLoggedIn ve firstName artık doğrudan Vuex getters'ından alınacak
       searchParams: {
         city: "Marmaris", // Varsayılan değer
         checkInDate: this.formatDate(new Date()),
@@ -145,34 +152,20 @@ export default {
     };
   },
   computed: {
-    // Vuex state'lerini computed property'lere bağlama
-    loggedInUser() {
-      return this.$store.state.user;
-    },
-    isUserLoggedIn() {
-      return this.$store.getters.isLoggedIn;
-    },
+    // Vuex getters'larını doğrudan computed property'lere bağla
+    ...mapGetters(["isAuthenticated", "userName", "user"]), // isAuthenticated ve userName getter'larını ekledik
+    // Bu sayede template'te doğrudan 'isAuthenticated' ve 'userName' kullanabiliriz.
   },
-  watch: {
-    isUserLoggedIn(newVal) {
-      this.isLoggedIn = newVal;
-      if (newVal) {
-        this.firstName = this.loggedInUser.name; // Kullanıcı adını al
-      } else {
-        this.firstName = "";
-      }
-    },
-  },
+  // watch ve created hook'undaki manuel atamaları kaldırdık,
+  // çünkü computed property'ler otomatik olarak güncellenecek.
   created() {
-    // Sayfa yüklendiğinde otelleri çek
-    this.isLoggedIn = this.$store.getters.isLoggedIn;
-    if (this.isLoggedIn) {
-      this.firstName = this.$store.state.user.firstName;
-    }
     this.fetchHotels(); // Otelleri çekme işlemini çağır
   },
   // frontend/src/views/HomeView.vue içindeki methods objesi içinde
   methods: {
+    // Vuex actions'larını bağla
+    ...mapActions(["logout"]), // logout action'ını ekle
+
     formatDate(date) {
       const d = new Date(date);
       const year = d.getFullYear();
@@ -202,7 +195,6 @@ export default {
         // Hata durumunda kullanıcıya bilgi verebiliriz
       }
     },
-    // Diğer metodlar (searchHotels, navigateToLogin vb.) burada kalacak
     searchHotels() {
       console.log("Otel Ara tıklandı!", this.searchParams.city);
       this.fetchHotels(this.searchParams.city); // Arama butonunda şehri gönder
@@ -213,21 +205,46 @@ export default {
     viewHotelDetails(hotelId) {
       this.$router.push(`/hotel/${hotelId}`);
     },
-    showOnMap() {
-      // Harita entegrasyonu daha sonra yapılacak
-      alert("Harita özelliği henüz entegre edilmedi.");
+    showAllHotelsOnMap() {
+      if (this.searchParams.city) {
+        // maps_local.Google Maps aracı ile Google Haritalar URL'sini alalım
+        const query = encodeURIComponent(this.searchParams.city + ", Türkiye");
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        window.open(mapUrl, '_blank'); // Yeni sekmede aç
+      } else {
+        alert("Haritada göstermek için bir şehir seçmelisiniz.");
+      }
     },
     searchByName() {
       // Ada göre arama özelliği daha sonra yapılacak
       alert("Konaklama yeri adına göre arama özelliği henüz entegre edilmedi.");
+    },
+    // YENİ METOD: Çıkış yapma
+    async handleLogout() {
+      await this.logout(); // Vuex logout action'ını çağır
+      this.$router.push("/login"); // Kullanıcıyı login sayfasına yönlendir
     },
   },
 };
 </script>
 
 <style scoped>
-/* Eğer bir stil dosyanız varsa, içeriğini buraya yapıştırabilirsiniz. */
-/* Eğer yoksa bu kısmı silebilirsiniz veya boş bırakabilirsiniz. */
+/* Mevcut stil kodlarınız aynı kalabilir */
+/* Sadece logout-button için yeni bir stil ekleyebilirsiniz */
+.logout-button {
+  background-color: #dc3545; /* Kırmızı renk */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px; /* Giriş yap/Hoş geldiniz mesajından biraz boşluk */
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+/* Diğer stil kuralları yukarıdaki gibidir */
 .header {
   display: flex;
   justify-content: space-between;
@@ -238,7 +255,19 @@ export default {
 }
 
 .logo {
-  height: 40px; /* Adjust as needed */
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+}
+.com-text {
+  color: #007bff;
+}
+
+
+.user-info {
+  /* user-info için de flex ekleyelim ki butonlar yan yana gelsin */
+  display: flex;
+  align-items: center;
 }
 
 .user-info .welcome-message {

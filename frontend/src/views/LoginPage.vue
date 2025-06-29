@@ -125,8 +125,17 @@ export default {
       messageType: "",
     };
   },
+  mounted() {
+    // Sayfa yüklendiğinde URL'deki parametreleri kontrol et
+    this.handleGoogleCallback();
+  },
   methods: {
-    ...mapActions(["loginUser", "registerUser"]),
+    ...mapActions([
+      "loginUser",
+      "registerUser",
+      "googleLoginSuccess",
+      "logout",
+    ]),
 
     async login() {
       try {
@@ -207,6 +216,34 @@ export default {
       } catch (error) {
         this.message = error.response?.data?.message || "Kayıt başarısız.";
         this.messageType = "error";
+      }
+    },
+    // YENİ METOD: Google ile Giriş Yapma
+    loginWithGoogle() {
+      // Backend'deki Google kimlik doğrulama rotasına yönlendir
+      window.location.href = `${process.env.VUE_APP_API_URL}/api/auth/google`;
+    },
+    // YENİ METOD: Google Callback'ten gelen URL parametrelerini işle
+    handleGoogleCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      const firstName = urlParams.get("firstName");
+      const email = urlParams.get("email");
+      const error = urlParams.get("error");
+
+      if (token && firstName && email) {
+        // Vuex action'ını çağırarak oturum bilgilerini sakla
+        this.googleLoginSuccess({ token, user: { firstName, email } });
+        this.message = "Google ile giriş başarılı!";
+        this.messageType = "success";
+        // URL'deki token ve diğer parametreleri temizle
+        this.$router.replace({ query: {} }); // Parametreleri URL'den kaldır
+        this.$router.push("/"); // Ana sayfaya yönlendir
+      } else if (error) {
+        this.message =
+          "Google ile giriş başarısız: " + error.replace(/_/g, " "); // Hata mesajını düzelt
+        this.messageType = "error";
+        this.$router.replace({ query: {} }); // Parametreleri URL'den kaldır
       }
     },
   },
