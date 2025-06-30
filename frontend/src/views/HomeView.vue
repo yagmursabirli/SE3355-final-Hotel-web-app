@@ -76,15 +76,15 @@
       <div class="list-header">
         <h3>Konaklama Yerleri</h3>
         <div class="sort-options">
-      <label for="sort-by">Sıralama ölçütü:</label>
-      <select id="sort-by" v-model="sortOrder" @change="applySorting">
-        <option value="recommended">Önerilen</option>
-        <option value="rating_desc">Puan (Yüksekten Düşüğe)</option>
-        <option value="rating_asc">Puan (Düşükten Yükseğe)</option>
-        <option value="price_asc">Fiyat (Düşükten Yükseğe)</option>
-        <option value="price_desc">Fiyat (Yüksekten Düşüğe)</option>
-      </select>
-    </div>
+          <label for="sort-by">Sıralama ölçütü:</label>
+          <select id="sort-by" v-model="sortOrder" @change="applySorting">
+            <option value="recommended">Önerilen</option>
+            <option value="rating_desc">Puan (Yüksekten Düşüğe)</option>
+            <option value="rating_asc">Puan (Düşükten Yükseğe)</option>
+            <option value="price_asc">Fiyat (Düşükten Yükseğe)</option>
+            <option value="price_desc">Fiyat (Yüksekten Düşüğe)</option>
+          </select>
+        </div>
         <button @click="showAllHotelsOnMap" class="map-button">
           Haritada göster
         </button>
@@ -103,12 +103,15 @@
             <p
               :class="{
                 'availability-status': true,
-                'status-available': hotel.is_available, /* backend'den gelen is_available flag'i */
-                'status-unavailable': !hotel.is_available, /* is_available false ise */
+                'status-available':
+                  hotel.is_available /* backend'den gelen is_available flag'i */,
+                'status-unavailable':
+                  !hotel.is_available /* is_available false ise */,
               }"
             >
               {{ hotel.availability_status }}
-              <span v-if="hotel.is_available && hotel.available_rooms_for_dates > 0"
+              <span
+                v-if="hotel.is_available && hotel.available_rooms_for_dates > 0"
                 >({{ hotel.available_rooms_for_dates }} oda müsait)</span
               >
             </p>
@@ -161,12 +164,10 @@
             >
               Detayları Gör
             </button>
-            </div>
+          </div>
         </div>
       </div>
     </section>
-
-   
 
     <section class="search-by-name-section">
       <h4>Konaklama yeri adına göre ara</h4>
@@ -214,7 +215,6 @@ export default {
     this.searchParams.checkInDate = today; // searchParams'a da ata
     this.searchParams.checkOutDate = tomorrow; // searchParams'a da ata
     this.fetchHotels(this.searchParams.city, "", this.sortOrder);
-
   },
   methods: {
     ...mapActions(["logout"]),
@@ -263,7 +263,6 @@ export default {
       this.fetchHotels(this.searchParams.city, this.hotelName, this.sortOrder);
     },
 
-
     // handleCheckInDateSelected ve handleCheckOutDateSelected artık kullanılmayacak
     // çünkü @vuepic/vue-datepicker tek bir aralık seçici olarak kullanılıyor.
     // Bu metodları silebiliriz veya yoruma alabiliriz.
@@ -287,10 +286,10 @@ export default {
       }
     },
     */
-  applySorting() {
-    // Mevcut arama parametreleriyle otelleri yeniden çek (sıralama parametresiyle birlikte)
-    this.fetchHotels(this.searchParams.city, this.hotelName, this.sortOrder);
-  },
+    applySorting() {
+      // Mevcut arama parametreleriyle otelleri yeniden çek (sıralama parametresiyle birlikte)
+      this.fetchHotels(this.searchParams.city, this.hotelName, this.sortOrder);
+    },
     async fetchHotels(city = "", hotelName = "", sort = "recommended") {
       try {
         let url = `http://localhost:3000/api/hotels`;
@@ -304,21 +303,26 @@ export default {
         }
         // Tarih parametrelerini ekleyelim (backend destekliyorsa)
         // Eğer backend'iniz tarih filtrelemesini destekliyorsa buraya eklemeniz gerekir.
-         if (this.searchParams.checkInDate) {
-          queryParams.push(`checkInDate=${this.searchParams.checkInDate.toISOString()}`);
-         }
-         if (this.searchParams.checkOutDate) {
-           queryParams.push(`checkOutDate=${this.searchParams.checkOutDate.toISOString()}`);
-         }
+        if (this.searchParams.checkInDate) {
+          queryParams.push(
+            `checkInDate=${this.searchParams.checkInDate.toISOString()}`
+          );
+        }
+        if (this.searchParams.checkOutDate) {
+          queryParams.push(
+            `checkOutDate=${this.searchParams.checkOutDate.toISOString()}`
+          );
+        }
         if (this.searchParams.guestCount) {
           queryParams.push(`guestCount=${this.searchParams.guestCount}`);
         }
         if (this.searchParams.roomCount) {
           queryParams.push(`roomCount=${this.searchParams.roomCount}`);
         }
-        if (sort && sort !== "recommended") { // "recommended" varsayılan olduğu için göndermeye gerek yok
-        queryParams.push(`orderBy=${encodeURIComponent(sort)}`);
-      }
+        if (sort && sort !== "recommended") {
+          // "recommended" varsayılan olduğu için göndermeye gerek yok
+          queryParams.push(`orderBy=${encodeURIComponent(sort)}`);
+        }
 
         if (queryParams.length > 0) {
           url += `?${queryParams.join("&")}`;
@@ -336,10 +340,9 @@ export default {
           rating: parseFloat(hotel.rating), // Rating'i de parseFloat yap
 
           // amenities: hotel.amenities // Backend'den zaten dizi olarak geliyorsa
-         // amenities: hotel.amenities // Eğer hala string geliyorsa
+          // amenities: hotel.amenities // Eğer hala string geliyorsa
           //  ? hotel.amenities.split(",").map((s) => s.trim())
           //  : [],
-       
         }));
         console.log("Oteller başarıyla çekildi:", this.hotels);
       } catch (error) {

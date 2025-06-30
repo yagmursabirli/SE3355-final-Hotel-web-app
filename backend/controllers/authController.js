@@ -50,7 +50,7 @@ async (request, accessToken, refreshToken, profile, done) => {
             // Kullanıcı yoksa, yeni bir kullanıcı kaydet
             console.log('Yeni Google kullanıcısı kaydediliyor:', email);
             const newUser = await pool.query(
-                'INSERT INTO users (first_name, last_name, email, google_id) VALUES ($1, $2, $3, $4) RETURNING id, first_name, last_name, email',
+                'INSERT INTO users (first_name, last_name, email, google_id, profile_image_base64) VALUES ($1, $2, $3, $4, NULL) RETURNING id, first_name, last_name, email,  profile_image_base64',
                 [profile.name.givenName, profile.name.familyName, email, profile.id]
             );
             user = newUser.rows[0];
@@ -68,7 +68,7 @@ async (request, accessToken, refreshToken, profile, done) => {
 
 // Kullanıcı Kayıt İşlemi
 exports.registerUser = async (req, res) => {
-    const { firstName, lastName, email, password, country, city } = req.body;
+    const { firstName, lastName, email, password, country, city, profile_image_base64 } = req.body;
 
     console.log('Register endpointine gelen veri:', req.body); // Debug için
 
@@ -92,8 +92,8 @@ exports.registerUser = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
         const newUser = await pool.query(
-            'INSERT INTO users (first_name, last_name, email, password_hash, country, city) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, email, country, city',
-            [firstName, lastName, email, passwordHash, country, city]
+            'INSERT INTO users (first_name, last_name, email, password_hash, country, city, profile_image_base64) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email, country, city, profile_image_base64',
+            [firstName, lastName, email, passwordHash, country, city, profile_image_base64 || null]
         );
 
         res.status(201).json({ message: 'Kayıt başarılı!', user: newUser.rows[0] });
@@ -147,6 +147,7 @@ exports.loginUser = async (req, res) => {
                 email: user.email,
                 country: user.country,
                 city: user.city,
+                profile_image_base64: user.profile_image_base64 || null
             }
         });
 

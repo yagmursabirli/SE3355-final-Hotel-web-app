@@ -95,8 +95,28 @@
             <option value="Ankara">Ankara</option>
           </select>
         </div>
+
+       <div class="form-group">
+          <label for="profilePhoto">Profil Fotoğrafı (İsteğe Bağlı):</label>
+          <input type="file" id="profilePhoto" @change="handleFileUpload" accept="image/*" style="display: none;" />
+          
+          <label for="profilePhoto" class="custom-file-upload btn btn-secondary">
+            Fotoğraf Seç
+          </label>
+          
+          <p v-if="selectedFileName" class="selected-file-name">Seçilen Dosya: {{ selectedFileName }}</p>
+
+          <img
+            v-if="profileImagePreview"
+            :src="profileImagePreview"
+            alt="Profil Önizleme"
+            class="profile-image-preview"
+          />
+        </div>
+
         <button type="submit" class="btn btn-success">Kayıt Ol</button>
       </form>
+      <p v-if="message" :class="messageType">{{ message }}</p>
     </div>
   </div>
 </template>
@@ -120,9 +140,12 @@ export default {
         passwordConfirm: "",
         country: "Türkiye", // Varsayılan değer
         city: "Izmir", // Varsayılan değer
+        profileImageBase64: null,
       },
       message: "",
       messageType: "",
+      profileImagePreview: null,
+      selectedFileName: null, 
     };
   },
   mounted() {
@@ -149,6 +172,51 @@ export default {
           "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.";
         this.messageType = "error";
       }
+    },
+   handleFileUpload(event) {
+      const file = event.target.files[0];
+      // `this.profileImageBase64` artık `registerForm` içinde olduğundan, buradaki satırı kaldırın
+      // this.profileImageBase64 = null; // Bu satırı kaldırın veya silin
+
+      this.profileImagePreview = null; // Önizlemeyi temizle
+      this.message = ""; // Hata mesajını temizle
+      this.selectedFileName = null; // <-- Yeni: Seçilen dosya adını temizle
+
+      if (!file) {
+        return; // Dosya seçilmediyse hiçbir şey yapma
+      }
+
+      // Dosya adını kaydet
+      this.selectedFileName = file.name; // <-- Yeni: Seçilen dosya adını sakla
+
+      // Sadece görsel dosyaları kabul et
+      if (!file.type.startsWith("image/")) {
+        this.message = "Lütfen bir resim dosyası seçin.";
+        this.messageType = "error";
+        this.selectedFileName = null; // <-- Yeni: Hatalıysa dosya adını temizle
+        return;
+      }
+
+      // Maksimum dosya boyutu kontrolü (örn: 2MB)
+      const maxSize = 2 * 1024 * 1024; // 2 MB
+      if (file.size > maxSize) {
+        this.message = "Dosya boyutu 2MB'ı geçmemelidir.";
+        this.messageType = "error";
+        this.selectedFileName = null; // <-- Yeni: Hatalıysa dosya adını temizle
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.registerForm.profileImageBase64 = e.target.result; // Base64 stringini kaydet
+        this.profileImagePreview = e.target.result; // Önizlemeyi göster
+      };
+      reader.onerror = () => {
+        this.message = "Dosya okunamadı.";
+        this.messageType = "error";
+        this.selectedFileName = null; // <-- Yeni: Hatalıysa dosya adını temizle
+      };
+      reader.readAsDataURL(file); // Dosyayı Base64 olarak oku
     },
     // handleProfilePictureUpload metodu artık çağrılmayacak veya kaldırılabilir
     handleProfilePictureUpload(event) {
@@ -191,6 +259,7 @@ export default {
           country: this.registerForm.country,
           city: this.registerForm.city,
           // profilePicture: this.registerForm.profilePicture, // Profil resmi artık gönderilmiyor
+          profile_image_base64: this.registerForm.profileImageBase64,
         };
 
         // Axios, varsayılan olarak JavaScript objelerini JSON olarak gönderir
@@ -207,9 +276,10 @@ export default {
           passwordConfirm: "",
           country: "Türkiye",
           city: "Izmir",
-          profilePicture: null,
+          profileImageBase64: null,
         };
-        this.profilePicturePreview = null;
+        this.profileImagePreview = null;
+         this.selectedFileName = null;
         // Giriş formunu doldur
         this.loginForm.email = this.registerForm.email;
         this.loginForm.password = "";
@@ -251,6 +321,32 @@ export default {
 </script>
 
 <style scoped>
+
+/* Mevcut <style scoped> etiketinizin içine ekleyin */
+
+/* Varsayılan dosya input'unu tamamen gizle */
+input[type="file"] {
+    display: none;
+}
+
+/* Özel dosya yükleme butonu (label) için stil */
+.custom-file-upload {
+    /* btn ve btn-secondary sınıfları zaten temel buton stillerini sağlıyor */
+    cursor: pointer; /* Fare imlecini el işareti yapar */
+    text-align: center; /* Metni ortala */
+    margin-bottom: 10px; /* Alttan boşluk bırak */
+    /* width: 100%; (btn sınıfında zaten var) */
+    /* padding: 12px; (btn sınıfında zaten var) */
+    /* border-radius: 6px; (btn sınıfında zaten var) */
+}
+
+/* Seçilen dosya adının görüntülendiği p etiketi için stil */
+.selected-file-name {
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
 /* Mevcut stil kodlarınız aynı kalabilir */
 .login-page {
   display: flex;
@@ -384,5 +480,20 @@ export default {
 /* Profil resmiyle ilgili stil kuralları da artık gereksiz olabilir */
 .profile-picture-group {
   display: none; /* Şimdilik gizle */
+}
+
+/* Mevcut <style scoped> etiketinizin içine ekleyin */
+
+.form-group .profile-image-preview {
+  display: block; /* Resmi blok eleman yapar */
+  margin-top: 10px; /* Üstten biraz boşluk bırakır */
+  max-width: 150px; /* Maksimum genişliği 150 piksel yapar */
+  max-height: 150px; /* Maksimum yüksekliği 150 piksel yapar */
+  width: auto; /* Genişliği otomatik ayarlar */
+  height: auto; /* Yüksekliği otomatik ayarlar */
+  border: 1px solid #ddd; /* İnce bir kenarlık ekler */
+  border-radius: 8px; /* Köşeleri yuvarlar */
+  object-fit: cover; /* Resmin en boy oranını koruyarak kutuya sığdırır, gerekirse kırpar */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hafif bir gölge ekler */
 }
 </style>

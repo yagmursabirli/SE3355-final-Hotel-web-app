@@ -57,7 +57,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
     // Oturumdaki ID'yi kullanarak veritabanından kullanıcının tam bilgilerini alırız
     try {
-        const userResult = await pool.query('SELECT id, first_name, last_name, email FROM users WHERE id = $1', [id]);
+        const userResult = await pool.query('SELECT id, first_name, last_name, email, profile_image_base64  FROM users WHERE id = $1', [id]);
         if (userResult.rows.length > 0) {
             // Kullanıcı bulunursa, user objesini Passport'a geri verir
             done(null, userResult.rows[0]);
