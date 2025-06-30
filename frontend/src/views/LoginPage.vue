@@ -96,15 +96,26 @@
           </select>
         </div>
 
-       <div class="form-group">
+        <div class="form-group">
           <label for="profilePhoto">Profil Fotoğrafı (İsteğe Bağlı):</label>
-          <input type="file" id="profilePhoto" @change="handleFileUpload" accept="image/*" style="display: none;" />
-          
-          <label for="profilePhoto" class="custom-file-upload btn btn-secondary">
+          <input
+            type="file"
+            id="profilePhoto"
+            @change="handleFileUpload"
+            accept="image/*"
+            style="display: none"
+          />
+
+          <label
+            for="profilePhoto"
+            class="custom-file-upload btn btn-secondary"
+          >
             Fotoğraf Seç
           </label>
-          
-          <p v-if="selectedFileName" class="selected-file-name">Seçilen Dosya: {{ selectedFileName }}</p>
+
+          <p v-if="selectedFileName" class="selected-file-name">
+            Seçilen Dosya: {{ selectedFileName }}
+          </p>
 
           <img
             v-if="profileImagePreview"
@@ -145,7 +156,7 @@ export default {
       message: "",
       messageType: "",
       profileImagePreview: null,
-      selectedFileName: null, 
+      selectedFileName: null,
     };
   },
   mounted() {
@@ -173,7 +184,7 @@ export default {
         this.messageType = "error";
       }
     },
-   handleFileUpload(event) {
+    handleFileUpload(event) {
       const file = event.target.files[0];
       // `this.profileImageBase64` artık `registerForm` içinde olduğundan, buradaki satırı kaldırın
       // this.profileImageBase64 = null; // Bu satırı kaldırın veya silin
@@ -279,7 +290,7 @@ export default {
           profileImageBase64: null,
         };
         this.profileImagePreview = null;
-         this.selectedFileName = null;
+        this.selectedFileName = null;
         // Giriş formunu doldur
         this.loginForm.email = this.registerForm.email;
         this.loginForm.password = "";
@@ -321,31 +332,30 @@ export default {
 </script>
 
 <style scoped>
-
 /* Mevcut <style scoped> etiketinizin içine ekleyin */
 
 /* Varsayılan dosya input'unu tamamen gizle */
 input[type="file"] {
-    display: none;
+  display: none;
 }
 
 /* Özel dosya yükleme butonu (label) için stil */
 .custom-file-upload {
-    /* btn ve btn-secondary sınıfları zaten temel buton stillerini sağlıyor */
-    cursor: pointer; /* Fare imlecini el işareti yapar */
-    text-align: center; /* Metni ortala */
-    margin-bottom: 10px; /* Alttan boşluk bırak */
-    /* width: 100%; (btn sınıfında zaten var) */
-    /* padding: 12px; (btn sınıfında zaten var) */
-    /* border-radius: 6px; (btn sınıfında zaten var) */
+  /* btn ve btn-secondary sınıfları zaten temel buton stillerini sağlıyor */
+  cursor: pointer; /* Fare imlecini el işareti yapar */
+  text-align: center; /* Metni ortala */
+  margin-bottom: 10px; /* Alttan boşluk bırak */
+  /* width: 100%; (btn sınıfında zaten var) */
+  /* padding: 12px; (btn sınıfında zaten var) */
+  /* border-radius: 6px; (btn sınıfında zaten var) */
 }
 
 /* Seçilen dosya adının görüntülendiği p etiketi için stil */
 .selected-file-name {
-    margin-top: 5px;
-    font-size: 0.9em;
-    color: #666;
-    text-align: center;
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #666;
+  text-align: center;
 }
 /* Mevcut stil kodlarınız aynı kalabilir */
 .login-page {

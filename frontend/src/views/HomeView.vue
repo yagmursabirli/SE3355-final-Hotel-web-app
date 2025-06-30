@@ -124,11 +124,11 @@
                 {{ amenity.trim() }}
               </span>
             </div>
+           
             <div class="hotel-rating">
-              <span class="rating-score">{{ hotel.rating }}</span>
-              <span class="rating-text">Mükemmel</span>
-              <span class="review-count">({{ hotel.review_count }} yorum)</span>
-            </div>
+  <span class="rating-score">{{ hotel.rating }}</span>
+  <span class="rating-text">{{ getRatingText(hotel.rating) }}</span> <span class="review-count">({{ hotel.review_count }} yorum)</span>
+</div>
             <div class="hotel-price-info">
               <p class="original-price" v-if="hotel.discount_percentage > 0">
                 {{ hotel.price.toFixed(2) }} TL
@@ -284,8 +284,21 @@ export default {
       ) {
         this.searchParams.checkInDate = new Date(date);
       }
-    },
-    */
+    },*/
+    getRatingText(rating) {
+    if (rating >= 9) {
+  return 'Mükemmel';
+    } else if (rating >= 8) {
+      return 'Çok İyi';
+    } else if (rating >= 7) {
+      return 'İyi';
+    } else if (rating >= 6) {
+      return 'Ortalama';
+    } else {
+      return 'Kötü'; // Veya 'Yetersiz', 'Düşük Puan'
+    }
+  },
+    
     applySorting() {
       // Mevcut arama parametreleriyle otelleri yeniden çek (sıralama parametresiyle birlikte)
       this.fetchHotels(this.searchParams.city, this.hotelName, this.sortOrder);

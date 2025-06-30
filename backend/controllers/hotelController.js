@@ -93,7 +93,7 @@ exports.getAllHotels = async (req, res) => {
             // Çakışma var = (A.başlangıç < B.bitiş) VE (A.bitiş > B.başlangıç)
             if (parsedCheckInDate < unavailableEnd && parsedCheckOutDate > unavailableStart) {
               isAvailable = false; // Çakışma var, otel müsait değil
-              availabilityStatus = 'Seçilen tarihlerde uygun oda yok';
+              availabilityStatus = 'Seçilen tarihlerde uygun oda yok❗';
               //
               // availableRoomsForDates = 0; // Müsait değilse oda sayısı 0
               break; // Bir çakışma bulmak yeterli, diğer aralıkları kontrol etmeye gerek yok
