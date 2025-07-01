@@ -137,6 +137,7 @@ import { mapActions } from "vuex";
 
 export default {
   name: "LoginPage",
+   props: ['token', 'firstName', 'email'],
   data() {
     return {
       loginForm: {
@@ -159,8 +160,24 @@ export default {
       selectedFileName: null,
     };
   },
-  mounted() {
-    this.handleGoogleCallback();
+
+   mounted() {
+    // `mounted` içinde `props`'lara erişebiliriz
+    if (this.token && this.firstName && this.email) {
+      console.log('Google callback ile token alındı:', this.token);
+      this.googleLoginSuccess({ token: this.token, user: { firstName: this.firstName, email: this.email } });
+      this.message = "Google ile giriş başarılı!";
+      this.messageType = "success";
+      // URL'deki query parametrelerini temizle ve ana sayfaya yönlendir
+      this.$router.replace({ query: {} }); // URL'den token ve diğer query'leri kaldırır
+      this.$router.push("/"); // Ana sayfaya yönlendir
+    } else if (this.$route.query.error) { // Eğer URL'de bir hata parametresi varsa
+        this.message = "Google ile giriş başarısız: " + this.$route.query.error.replace(/_/g, " ");
+        this.messageType = "error";
+        this.$router.replace({ query: {} });
+    }
+    // handleGoogleCallback metodunu `mounted`'dan kaldırın veya sadece hata kontrolü yapın
+    // `props`'lar kullanıldığı için bu metodu doğrudan çağırmak yerine props'ları kontrol etmek daha iyi.
   },
   methods: {
     ...mapActions([
