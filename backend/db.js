@@ -11,6 +11,7 @@ const pool = new Pool({
   port: process.env.PG_PORT,
   // SSL/TLS bağlantısı için eklenen yapılandırma
   ssl: {
+    connectionString: process.env.DATABASE_URL, 
     rejectUnauthorized: false 
   }
 });
