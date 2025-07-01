@@ -1,5 +1,5 @@
 // backend/server.js
-const express = require('express');
+/*const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const bcrypt = require('bcrypt');
@@ -74,4 +74,4 @@ app.listen(port, () => {
     pool.query('SELECT 1+1 AS solution')
         .then(res => console.log('Veritabanı bağlantı testi başarılı:', res.rows[0].solution))
         .catch(err => console.error('Veritabanı bağlantı testi hatası:', err.message));
-});
+});*/
