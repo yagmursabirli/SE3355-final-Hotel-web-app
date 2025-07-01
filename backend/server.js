@@ -65,8 +65,8 @@ app.get('/', (req, res) => {
     res.send('Hotel Booking Backend API is running!');
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/hotels', hotelRoutes);
+app.use('./routes/auth', authRoutes);
+app.use('./routes/hotels', hotelRoutes);
 
 app.listen(port, () => {
     console.log(`Backend sunucusu http://localhost:${port} adresinde çalışıyor`);
