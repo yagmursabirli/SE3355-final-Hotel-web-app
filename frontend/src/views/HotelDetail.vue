@@ -1,8 +1,9 @@
 <template>
   <div class="hotel-detail-page" v-if="hotel">
- <header class="header">
+    <header class="header">
       <div class="logo">Hotels.<span class="com-text">com</span></div>
-      <div class="user-info"> <span v-if="isAuthenticated" class="welcome-message">
+      <div class="user-info">
+        <span v-if="isAuthenticated" class="welcome-message">
           Merhaba, {{ userName }}
         </span>
         <button v-else @click="navigateToLogin" class="login-button">
@@ -18,10 +19,15 @@
       </div>
     </header>
 
-
-
     <div class="hotel-hero">
-      <img :src="hotel.image_url || 'https://via.placeholder.com/800x400?text=Hotel+Image'" :alt="hotel.name" class="hotel-main-image">
+      <img
+        :src="
+          hotel.image_url ||
+          'https://via.placeholder.com/800x400?text=Hotel+Image'
+        "
+        :alt="hotel.name"
+        class="hotel-main-image"
+      />
       <h1>{{ hotel.name }}</h1>
       <p class="hotel-address">{{ hotel.address }}, {{ hotel.city }}</p>
       <div class="overall-rating">
@@ -33,23 +39,43 @@
 
     <section class="hotel-details-section">
       <h2>Otel Hakkında</h2>
-      <p>{{ hotel.description || 'Bu otel hakkında açıklama bulunmamaktadır.' }}</p>
+      <p>
+        {{ hotel.description || "Bu otel hakkında açıklama bulunmamaktadır." }}
+      </p>
 
       <h3>Popüler Olanaklar</h3>
       <div class="amenities-list">
-        <span v-for="amenity in hotel.amenitiesArray" :key="amenity" class="amenity-tag">
+        <span
+          v-for="amenity in hotel.amenitiesArray"
+          :key="amenity"
+          class="amenity-tag"
+        >
           <i class="icon"></i> {{ amenity }}
         </span>
       </div>
 
       <div class="price-info">
         <p v-if="hotel.discountPercentage" class="discounted-price">
-          <span class="original-price-strikethrough">{{ (hotel.price / (1 - hotel.discountPercentage / 100)).toFixed(2) }} TL</span>
-          <span class="discount-badge"> %{{ hotel.discountPercentage }} indirim</span>
+          <span class="original-price-strikethrough"
+            >{{
+              (hotel.price / (1 - hotel.discountPercentage / 100)).toFixed(2)
+            }}
+            TL</span
+          >
+          <span class="discount-badge">
+            %{{ hotel.discountPercentage }} indirim</span
+          >
         </p>
-        <p class="current-price">{{ hotel.price.toFixed(2) }} TL <small>1 gece için vergiler ve ücretler dahildir</small></p>
-        <p v-if="hotel.member_price && !isLoggedIn" class="member-price-cta">Üye fiyatından yararlanılabilir</p>
-        <p v-if="hotel.member_price && isLoggedIn" class="member-price-display">Üye Fiyatı: {{ hotel.member_price.toFixed(2) }} TL</p>
+        <p class="current-price">
+          {{ hotel.price.toFixed(2) }} TL
+          <small>1 gece için vergiler ve ücretler dahildir</small>
+        </p>
+        <p v-if="hotel.member_price && !isLoggedIn" class="member-price-cta">
+          Üye fiyatından yararlanılabilir
+        </p>
+        <p v-if="hotel.member_price && isLoggedIn" class="member-price-display">
+          Üye Fiyatı: {{ hotel.member_price.toFixed(2) }} TL
+        </p>
       </div>
 
       <button class="book-now-button">Şimdi Rezervasyon Yap</button>
@@ -62,35 +88,50 @@
         <div class="rating-bar-group">
           <label>Temizlik:</label>
           <div class="bar-container">
-            <div class="bar" :style="{ width: (avgRating.cleanlinessRating * 10) + '%' }"></div>
+            <div
+              class="bar"
+              :style="{ width: avgRating.cleanlinessRating * 10 + '%' }"
+            ></div>
           </div>
           <span>{{ avgRating.cleanlinessRating }}/10</span>
         </div>
         <div class="rating-bar-group">
           <label>Personel ve servis:</label>
           <div class="bar-container">
-            <div class="bar" :style="{ width: (avgRating.serviceRating * 10) + '%' }"></div>
+            <div
+              class="bar"
+              :style="{ width: avgRating.serviceRating * 10 + '%' }"
+            ></div>
           </div>
           <span>{{ avgRating.serviceRating }}/10</span>
         </div>
         <div class="rating-bar-group">
           <label>İmkan ve özellikler:</label>
           <div class="bar-container">
-            <div class="bar" :style="{ width: (avgRating.amenitiesRating * 10) + '%' }"></div>
+            <div
+              class="bar"
+              :style="{ width: avgRating.amenitiesRating * 10 + '%' }"
+            ></div>
           </div>
           <span>{{ avgRating.amenitiesRating }}/10</span>
         </div>
         <div class="rating-bar-group">
           <label>Konaklama yerinin durumu, imkanları ve kolaylıkları:</label>
           <div class="bar-container">
-            <div class="bar" :style="{ width: (avgRating.conditionRating * 10) + '%' }"></div>
+            <div
+              class="bar"
+              :style="{ width: avgRating.conditionRating * 10 + '%' }"
+            ></div>
           </div>
           <span>{{ avgRating.conditionRating }}/10</span>
         </div>
         <div class="rating-bar-group">
           <label>Çevre dostluğu:</label>
           <div class="bar-container">
-            <div class="bar" :style="{ width: (avgRating.environmentRating * 10) + '%' }"></div>
+            <div
+              class="bar"
+              :style="{ width: avgRating.environmentRating * 10 + '%' }"
+            ></div>
           </div>
           <span>{{ avgRating.environmentRating }}/10</span>
         </div>
@@ -98,39 +139,74 @@
 
       <div class="comment-list">
         <div v-for="comment in comments" :key="comment.id" class="comment-card">
-          <p class="comment-rating">{{ comment.rating.toFixed(1) }}/10 {{ getRatingText(comment.rating) }}</p>
+          <p class="comment-rating">
+            {{ comment.rating.toFixed(1) }}/10
+            {{ getRatingText(comment.rating) }}
+          </p>
           <p class="comment-date">{{ formatDate(comment.createdAt) }}</p>
-          <p class="comment-user">{{ comment.user.firstName }}, {{ comment.tripType }} seyahat</p>
+          <p class="comment-user">
+            {{ comment.user.firstName }}, {{ comment.tripType }}
+          </p>
           <p class="comment-text">{{ comment.comment }}</p>
           <p v-if="comment.reply" class="comment-reply">
-            <small>{{ comment.replyBy }}, {{ formatDate(comment.replyDate) }} tarihinde gönderilen yanıt:</small><br>
+            <small
+              >{{ comment.replyBy }},
+              {{ formatDate(comment.replyDate) }} tarihinde gönderilen
+              yanıt:</small
+            ><br />
             {{ comment.reply }}
           </p>
         </div>
-        <p v-if="comments.length === 0">Bu otel için henüz yorum bulunmamaktadır.</p>
+        <p v-if="comments.length === 0">
+          Bu otel için henüz yorum bulunmamaktadır.
+        </p>
       </div>
     </section>
 
     <section class="hotel-map-section">
       <h2>Haritada Konum</h2>
-      <div id="map-container" style="height: 250px; width: 100%; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
+      <div
+        id="map-container"
+        style="
+          height: 250px;
+          width: 100%;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          overflow: hidden;
+          margin-bottom: 10px;
+        "
+      >
         <iframe
           v-if="hotel && hotel.latitude && hotel.longitude"
           :src="getMapEmbedUrl"
           width="100%"
           height="100%"
           frameborder="0"
-          style="border:0"
+          style="border: 0"
           allowfullscreen=""
           loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
+          referrerpolicy="no-referrer-when-downgrade"
+        >
         </iframe>
-        <div v-else style="display: flex; justify-content: center; align-items: center; height: 100%; color: #777;">
+        <div
+          v-else
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #777;
+          "
+        >
           Harita bilgisi yüklenemedi.
         </div>
       </div>
-      <p class="hotel-address-map">{{ hotel.address }}, {{ hotel.city }}, {{ hotel.country }}</p>
-      <button @click="openInteractiveMapLink" class="map-link-button">Haritada göster</button>
+      <p class="hotel-address-map">
+        {{ hotel.address }}, {{ hotel.city }}, {{ hotel.country }}
+      </p>
+      <button @click="openInteractiveMapLink" class="map-link-button">
+        Haritada göster
+      </button>
     </section>
   </div>
   <div v-else class="loading-state">
@@ -140,22 +216,22 @@
 </template>
 
 <script>
-import axios from 'axios'; 
-import { mapGetters, mapActions } from 'vuex';
+import axios from "axios";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
-  name: 'HotelDetail',
-  props: ['id'], // Route params'tan gelen otel ID'si
+  name: "HotelDetail",
+  props: ["id"], // Route params'tan gelen otel ID'si
   data() {
     return {
       hotel: null,
       comments: [],
       loading: true,
-      error: null
+      error: null,
     };
   },
   computed: {
-    ...mapGetters(['isAuthenticated', 'userName']),
+    ...mapGetters(["isAuthenticated", "userName"]),
     avgRating() {
       if (this.comments.length === 0) {
         return {
@@ -166,108 +242,124 @@ export default {
           environmentRating: 0,
         };
       }
-      const sum = (arr, prop) => arr.reduce((acc, curr) => acc + (parseFloat(curr[prop]) || 0), 0);
-      const count = this.comments.filter(c => c.cleanlinessRating !== undefined).length;
+      const sum = (arr, prop) =>
+        arr.reduce((acc, curr) => acc + (parseFloat(curr[prop]) || 0), 0);
+      const count = this.comments.filter(
+        (c) => c.cleanlinessRating !== undefined
+      ).length;
 
       return {
-        cleanlinessRating: (sum(this.comments, 'cleanlinessRating') / count).toFixed(1),
-        serviceRating: (sum(this.comments, 'serviceRating') / count).toFixed(1),
-        amenitiesRating: (sum(this.comments, 'amenitiesRating') / count).toFixed(1),
-        conditionRating: (sum(this.comments, 'conditionRating') / count).toFixed(1),
-        environmentRating: (sum(this.comments, 'environmentRating') / count).toFixed(1),
+        cleanlinessRating: (
+          sum(this.comments, "cleanlinessRating") / count
+        ).toFixed(1),
+        serviceRating: (sum(this.comments, "serviceRating") / count).toFixed(1),
+        amenitiesRating: (
+          sum(this.comments, "amenitiesRating") / count
+        ).toFixed(1),
+        conditionRating: (
+          sum(this.comments, "conditionRating") / count
+        ).toFixed(1),
+        environmentRating: (
+          sum(this.comments, "environmentRating") / count
+        ).toFixed(1),
       };
     },
-    // Harita iframe'i için URL oluşturan computed property
     getMapEmbedUrl() {
       if (this.hotel && this.hotel.latitude && this.hotel.longitude) {
-        // Google Haritalar embed URL'i
-        // 'q' parametresi ile enlem, boylam ve isteğe bağlı olarak otel adı verilebilir.
-        // 'z' zoom seviyesidir.
         return `https://maps.google.com/maps?q=${this.hotel.latitude},${this.hotel.longitude}&z=15&output=embed`;
       }
-      return ''; // Konum bilgisi yoksa boş döner
-    }
+      return "";
+    },
   },
   async created() {
     await this.fetchHotelDetails();
   },
   methods: {
-  ...mapActions(['logout']),
+    ...mapActions(["logout"]),
     async fetchHotelDetails() {
       this.loading = true;
       this.error = null;
       try {
         // Gerçek API'den otel bilgilerini ve yorumları çekiyoruz
-        const response = await axios.get(`http://localhost:3000/api/hotels/${this.id}`);
+        const response = await axios.get(
+          `http://localhost:3000/api/hotels/${this.id}`
+        );
 
         this.hotel = {
           ...response.data.hotel,
           price: parseFloat(response.data.hotel.price),
           member_price: parseFloat(response.data.hotel.member_price),
-          amenitiesArray: response.data.hotel.amenities ? response.data.hotel.amenities.split(',').map(s => s.trim()) : [],
-          discountPercentage: parseFloat(response.data.hotel.discount_percentage),
+          amenitiesArray: response.data.hotel.amenities
+            ? response.data.hotel.amenities.split(",").map((s) => s.trim())
+            : [],
+          discountPercentage: parseFloat(
+            response.data.hotel.discount_percentage
+          ),
           totalComments: response.data.comments.length,
-          latitude: parseFloat(response.data.hotel.latitude), 
-          longitude: parseFloat(response.data.hotel.longitude)
+          latitude: parseFloat(response.data.hotel.latitude),
+          longitude: parseFloat(response.data.hotel.longitude),
         };
         this.comments = response.data.comments;
 
-        console.log('Otel Detayları ve Yorumlar:', this.hotel, this.comments);
-
+        console.log("Otel Detayları ve Yorumlar:", this.hotel, this.comments);
       } catch (err) {
-        this.error = 'Otel bilgileri yüklenirken bir hata oluştu.';
-        console.error('Otel detayları yükleme hatası:', err);
+        this.error = "Otel bilgileri yüklenirken bir hata oluştu.";
+        console.error("Otel detayları yükleme hatası:", err);
       } finally {
         this.loading = false;
       }
     },
     getRatingText(rating) {
-      if (rating >= 9) return 'Harika';
-      if (rating >= 8) return 'Mükemmel';
-      if (rating >= 7) return 'Çok İyi';
-      if (rating >= 6) return 'İyi';
-      return 'Ortalama';
+      if (rating >= 9) return "Harika";
+      if (rating >= 8) return "Mükemmel";
+      if (rating >= 7) return "Çok İyi";
+      if (rating >= 6) return "İyi";
+      return "Ortalama";
     },
+
     formatDate(dateString) {
-      if (!dateString) return '';
+      if (!dateString) return "";
       const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       };
-      return new Date(dateString).toLocaleDateString('tr-TR', options);
+      return new Date(dateString).toLocaleDateString("tr-TR", options);
     },
-    // Google Haritalar'ı etkileşimli olarak yeni bir sekmede açan metod
-    // Bu metod hala kullanılabilir ve herhangi bir API anahtarı veya ödeme gerektirmez.
     openInteractiveMapLink() {
       if (this.hotel && this.hotel.latitude && this.hotel.longitude) {
-        // Enlem ve boylam ile Google Haritalar'ı aç (daha kesin)
-        window.open(`https://www.google.com/maps/search/?api=1&query=${this.hotel.latitude},${this.hotel.longitude}`, '_blank');
+        window.open(
+          `https://www.google.com/maps/search/?api=1&query=${this.hotel.latitude},${this.hotel.longitude}`,
+          "_blank"
+        );
       } else if (this.hotel && this.hotel.address) {
-        // Adres ile Google Haritalar'ı aç (eğer enlem/boylam yoksa)
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(this.hotel.address + ', ' + this.hotel.city + ', ' + this.hotel.country)}`, '_blank');
+        window.open(
+          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            this.hotel.address +
+              ", " +
+              this.hotel.city +
+              ", " +
+              this.hotel.country
+          )}`,
+          "_blank"
+        );
       } else {
-        alert('Haritada gösterilecek konum bilgisi bulunamadı.');
+        alert("Haritada gösterilecek konum bilgisi bulunamadı.");
       }
     },
-     // YENİ METOD: Login sayfasına yönlendirme
     navigateToLogin() {
-      this.$router.push('/login');
+      this.$router.push("/login");
     },
-    // YENİ METOD: Çıkış yapma
     async handleLogout() {
-      await this.logout(); // Vuex logout action'ını çağır
-      this.$router.push('/login'); 
-    }
-  }
+      await this.logout();
+      this.$router.push("/login");
+    },
+  },
 };
 </script>
 
 <style scoped>
-/* ... mevcut stilleriniz ... */
-
 .user-info {
-  /* user-info için de flex ekleyelim ki butonlar yan yana gelsin */
   display: flex;
   align-items: center;
 }
@@ -287,21 +379,18 @@ export default {
 }
 
 .logout-button {
-  background-color: #dc3545; /* Kırmızı renk */
+  background-color: #dc3545;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 10px; /* Giriş yap/Hoş geldiniz mesajından biraz boşluk */
+  margin-left: 10px;
 }
 
 .logout-button:hover {
   background-color: #c82333;
 }
-
-/* ... diğer stilleriniz ... */
-/* Yukarıda verdiğiniz tüm <style scoped> içeriğini buraya yapıştırın. */
 .hotel-detail-page {
   font-family: Arial, sans-serif;
   max-width: 1200px;
@@ -410,9 +499,9 @@ h2 {
 }
 
 h3 {
-    color: #555;
-    margin-top: 20px;
-    margin-bottom: 15px;
+  color: #555;
+  margin-top: 20px;
+  margin-bottom: 15px;
 }
 
 .amenities-list {
@@ -433,63 +522,61 @@ h3 {
 }
 
 .amenity-tag .icon {
-    /* İkonlar için placeholder */
-    margin-right: 5px;
-    font-size: 1.1em;
+  margin-right: 5px;
+  font-size: 1.1em;
 }
 
 .price-info {
-    text-align: right;
-    margin-top: 20px;
+  text-align: right;
+  margin-top: 20px;
 }
 
 .current-price {
-    font-size: 2em;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
 }
 
 .current-price small {
-    font-size: 0.6em;
-    font-weight: normal;
-    color: #777;
+  font-size: 0.6em;
+  font-weight: normal;
+  color: #777;
 }
 
 .discounted-price {
-    color: red;
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-bottom: 5px;
+  color: red;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-bottom: 5px;
 }
 
 .original-price-strikethrough {
-    text-decoration: line-through;
-    color: #777;
-    margin-right: 10px;
+  text-decoration: line-through;
+  color: #777;
+  margin-right: 10px;
 }
 
 .discount-badge {
-    background-color: red;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 0.8em;
+  background-color: red;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 0.8em;
 }
 
 .member-price-cta {
-    color: #ffc107; /* Sarı renk */
-    font-weight: bold;
-    font-size: 0.9em;
-    margin-top: 5px;
+  color: #ffc107;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin-top: 5px;
 }
 .member-price-display {
-    color: #007bff; /* Mavi renk */
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-top: 5px;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-top: 5px;
 }
-
 
 .book-now-button {
   background-color: #28a745;
@@ -568,7 +655,8 @@ h3 {
   margin-bottom: 5px;
 }
 
-.comment-date, .comment-user {
+.comment-date,
+.comment-user {
   font-size: 0.85em;
   color: #777;
   margin-bottom: 5px;
@@ -580,12 +668,12 @@ h3 {
 }
 
 .comment-reply {
-    background-color: #f0f8ff;
-    border-left: 3px solid #007bff;
-    padding: 10px;
-    margin-top: 10px;
-    font-size: 0.9em;
-    color: #444;
+  background-color: #f0f8ff;
+  border-left: 3px solid #007bff;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #444;
 }
 
 #map-container {
@@ -596,26 +684,26 @@ h3 {
 }
 
 .hotel-address-map {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 1.1em;
-    color: #555;
+  text-align: center;
+  margin-top: 15px;
+  font-size: 1.1em;
+  color: #555;
 }
 
 .map-link-button {
-    background-color: #6c757d;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    display: block;
-    width: fit-content;
-    margin: 15px auto 0;
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: block;
+  width: fit-content;
+  margin: 15px auto 0;
 }
 
 .map-link-button:hover {
-    background-color: #5a6268;
+  background-color: #5a6268;
 }
 
 .loading-state {
@@ -630,7 +718,6 @@ h3 {
   margin-top: 10px;
 }
 
-/* Responsive Tasarım */
 @media (max-width: 768px) {
   .hotel-hero h1 {
     font-size: 1.8em;

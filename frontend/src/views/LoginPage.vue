@@ -149,8 +149,8 @@ export default {
         email: "",
         password: "",
         passwordConfirm: "",
-        country: "Türkiye", // Varsayılan değer
-        city: "Izmir", // Varsayılan değer
+        country: "Türkiye",
+        city: "Izmir",
         profileImageBase64: null,
       },
       message: "",
@@ -160,7 +160,6 @@ export default {
     };
   },
   mounted() {
-    // Sayfa yüklendiğinde URL'deki parametreleri kontrol et
     this.handleGoogleCallback();
   },
   methods: {
@@ -186,50 +185,43 @@ export default {
     },
     handleFileUpload(event) {
       const file = event.target.files[0];
-      // `this.profileImageBase64` artık `registerForm` içinde olduğundan, buradaki satırı kaldırın
-      // this.profileImageBase64 = null; // Bu satırı kaldırın veya silin
-
-      this.profileImagePreview = null; // Önizlemeyi temizle
-      this.message = ""; // Hata mesajını temizle
-      this.selectedFileName = null; // <-- Yeni: Seçilen dosya adını temizle
+      this.profileImagePreview = null;
+      this.message = "";
+      this.selectedFileName = null;
 
       if (!file) {
-        return; // Dosya seçilmediyse hiçbir şey yapma
-      }
-
-      // Dosya adını kaydet
-      this.selectedFileName = file.name; // <-- Yeni: Seçilen dosya adını sakla
-
-      // Sadece görsel dosyaları kabul et
-      if (!file.type.startsWith("image/")) {
-        this.message = "Lütfen bir resim dosyası seçin.";
-        this.messageType = "error";
-        this.selectedFileName = null; // <-- Yeni: Hatalıysa dosya adını temizle
         return;
       }
 
-      // Maksimum dosya boyutu kontrolü (örn: 2MB)
-      const maxSize = 2 * 1024 * 1024; // 2 MB
+      this.selectedFileName = file.name;
+
+      if (!file.type.startsWith("image/")) {
+        this.message = "Lütfen bir resim dosyası seçin.";
+        this.messageType = "error";
+        this.selectedFileName = null;
+        return;
+      }
+
+      const maxSize = 2 * 1024 * 1024;
       if (file.size > maxSize) {
         this.message = "Dosya boyutu 2MB'ı geçmemelidir.";
         this.messageType = "error";
-        this.selectedFileName = null; // <-- Yeni: Hatalıysa dosya adını temizle
+        this.selectedFileName = null;
         return;
       }
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.registerForm.profileImageBase64 = e.target.result; // Base64 stringini kaydet
-        this.profileImagePreview = e.target.result; // Önizlemeyi göster
+        this.registerForm.profileImageBase64 = e.target.result;
+        this.profileImagePreview = e.target.result;
       };
       reader.onerror = () => {
         this.message = "Dosya okunamadı.";
         this.messageType = "error";
-        this.selectedFileName = null; // <-- Yeni: Hatalıysa dosya adını temizle
+        this.selectedFileName = null;
       };
-      reader.readAsDataURL(file); // Dosyayı Base64 olarak oku
+      reader.readAsDataURL(file);
     },
-    // handleProfilePictureUpload metodu artık çağrılmayacak veya kaldırılabilir
     handleProfilePictureUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -261,7 +253,6 @@ export default {
       }
 
       try {
-        // *** BURADA DEĞİŞİKLİK YAPIYORUZ: Doğrudan registerForm objesini JSON olarak gönderiyoruz ***
         const userData = {
           firstName: this.registerForm.firstName,
           lastName: this.registerForm.lastName,
@@ -269,16 +260,12 @@ export default {
           password: this.registerForm.password,
           country: this.registerForm.country,
           city: this.registerForm.city,
-          // profilePicture: this.registerForm.profilePicture, // Profil resmi artık gönderilmiyor
           profile_image_base64: this.registerForm.profileImageBase64,
         };
-
-        // Axios, varsayılan olarak JavaScript objelerini JSON olarak gönderir
-        await this.registerUser(userData); // Vuex action'ını çağır
+        await this.registerUser(userData);
 
         this.message = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
         this.messageType = "success";
-        // Formu sıfırla
         this.registerForm = {
           firstName: "",
           lastName: "",
@@ -291,7 +278,6 @@ export default {
         };
         this.profileImagePreview = null;
         this.selectedFileName = null;
-        // Giriş formunu doldur
         this.loginForm.email = this.registerForm.email;
         this.loginForm.password = "";
       } catch (error) {
@@ -299,12 +285,9 @@ export default {
         this.messageType = "error";
       }
     },
-    // YENİ METOD: Google ile Giriş Yapma
     loginWithGoogle() {
-      // Backend'deki Google kimlik doğrulama rotasına yönlendir
       window.location.href = `${process.env.VUE_APP_API_URL}/api/auth/google`;
     },
-    // YENİ METOD: Google Callback'ten gelen URL parametrelerini işle
     handleGoogleCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get("token");
@@ -313,18 +296,16 @@ export default {
       const error = urlParams.get("error");
 
       if (token && firstName && email) {
-        // Vuex action'ını çağırarak oturum bilgilerini sakla
         this.googleLoginSuccess({ token, user: { firstName, email } });
         this.message = "Google ile giriş başarılı!";
         this.messageType = "success";
-        // URL'deki token ve diğer parametreleri temizle
-        this.$router.replace({ query: {} }); // Parametreleri URL'den kaldır
-        this.$router.push("/"); // Ana sayfaya yönlendir
+        this.$router.replace({ query: {} });
+        this.$router.push("/");
       } else if (error) {
         this.message =
-          "Google ile giriş başarısız: " + error.replace(/_/g, " "); // Hata mesajını düzelt
+          "Google ile giriş başarısız: " + error.replace(/_/g, " ");
         this.messageType = "error";
-        this.$router.replace({ query: {} }); // Parametreleri URL'den kaldır
+        this.$router.replace({ query: {} });
       }
     },
   },
@@ -332,43 +313,34 @@ export default {
 </script>
 
 <style scoped>
-/* Mevcut <style scoped> etiketinizin içine ekleyin */
-
-/* Varsayılan dosya input'unu tamamen gizle */
 input[type="file"] {
   display: none;
 }
 
-/* Özel dosya yükleme butonu (label) için stil */
 .custom-file-upload {
-  /* btn ve btn-secondary sınıfları zaten temel buton stillerini sağlıyor */
-  cursor: pointer; /* Fare imlecini el işareti yapar */
-  text-align: center; /* Metni ortala */
-  margin-bottom: 10px; /* Alttan boşluk bırak */
-  /* width: 100%; (btn sınıfında zaten var) */
-  /* padding: 12px; (btn sınıfında zaten var) */
-  /* border-radius: 6px; (btn sınıfında zaten var) */
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-/* Seçilen dosya adının görüntülendiği p etiketi için stil */
 .selected-file-name {
   margin-top: 5px;
   font-size: 0.9em;
   color: #666;
   text-align: center;
 }
-/* Mevcut stil kodlarınız aynı kalabilir */
 .login-page {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 40px; /* Formlar arası boşluk */
+  gap: 40px;
   padding: 40px;
-  min-height: calc(100vh - 60px); /* Navbar yüksekliğini çıkar */
+  min-height: calc(100vh - 60px);
   background-color: #f0f2f5;
   font-family: Arial, sans-serif;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
-
 .form-container {
   background-color: #fff;
   padding: 30px;
@@ -377,8 +349,34 @@ input[type="file"] {
   width: 100%;
   max-width: 400px;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
+.register-container {
+}
+
+@media (max-width: 992px) {
+  .login-page {
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    gap: 30px;
+  }
+
+  .form-container {
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-page {
+    padding: 20px 15px;
+    gap: 25px;
+  }
+  .form-container {
+    padding: 25px;
+  }
+}
 .form-container h2 {
   text-align: center;
   margin-bottom: 25px;
@@ -437,7 +435,7 @@ input[type="file"] {
 }
 
 .btn-secondary {
-  background-color: #6c757d;
+  background-color: white;
   color: white;
 }
 
@@ -455,7 +453,7 @@ input[type="file"] {
 }
 
 .google-btn {
-  background-color: #dc3545; /* Kırmızımsı bir renk */
+  background-color: #dc3545;
   margin-top: 20px;
 }
 
@@ -483,27 +481,20 @@ input[type="file"] {
   text-align: center;
 }
 
-.register-container {
-  max-width: 450px; /* Kayıt formu biraz daha geniş olabilir */
-}
-
-/* Profil resmiyle ilgili stil kuralları da artık gereksiz olabilir */
 .profile-picture-group {
-  display: none; /* Şimdilik gizle */
+  display: none;
 }
-
-/* Mevcut <style scoped> etiketinizin içine ekleyin */
 
 .form-group .profile-image-preview {
-  display: block; /* Resmi blok eleman yapar */
-  margin-top: 10px; /* Üstten biraz boşluk bırakır */
-  max-width: 150px; /* Maksimum genişliği 150 piksel yapar */
-  max-height: 150px; /* Maksimum yüksekliği 150 piksel yapar */
-  width: auto; /* Genişliği otomatik ayarlar */
-  height: auto; /* Yüksekliği otomatik ayarlar */
-  border: 1px solid #ddd; /* İnce bir kenarlık ekler */
-  border-radius: 8px; /* Köşeleri yuvarlar */
-  object-fit: cover; /* Resmin en boy oranını koruyarak kutuya sığdırır, gerekirse kırpar */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hafif bir gölge ekler */
+  display: block;
+  margin-top: 10px;
+  max-width: 150px;
+  max-height: 150px;
+  width: auto;
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 </style>

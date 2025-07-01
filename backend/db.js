@@ -11,7 +11,7 @@ const pool = new Pool({
   port: process.env.PG_PORT,
   // SSL/TLS bağlantısı için eklenen yapılandırma
   ssl: {
-    rejectUnauthorized: false // Render.com gibi bazı hostingler için gerekli olabilir
+    rejectUnauthorized: false 
   }
 });
 
@@ -20,8 +20,8 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  console.error('Veritabanı bağlantı hatası:', err.message); // Hata mesajını daha anlaşılır yapalım
-  process.exit(1); // Hata durumunda uygulamayı kapat
+  console.error('Veritabanı bağlantı hatası:', err.message); 
+  process.exit(1); 
 });
 
 module.exports = pool;

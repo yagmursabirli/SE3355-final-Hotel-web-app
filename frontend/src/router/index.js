@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import LoginPage from '../views/LoginPage.vue';
 import HotelDetail from '../views/HotelDetail.vue';
-//import RegisterPage from '../views/RegisterPage.vue'; // Yeni kayıt sayfası
 
 const routes = [{
     path: '/',
@@ -16,12 +15,11 @@ const routes = [{
     component: LoginPage
   },
   {
-    path: '/hotel/:id', // Dinamik rota, otel ID'si ile detay sayfası
+    path: '/hotel/:id', 
     name: 'hotel-detail',
     component: HotelDetail,
-    props: true // Route params'ı component props olarak geçirmek için
+    props: true 
   },
-  // Diğer rotalar buraya eklenebilir (örn. rezervasyonlarım, profil vb.)
 ];
 
 const router = createRouter({

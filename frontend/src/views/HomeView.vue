@@ -104,9 +104,9 @@
               :class="{
                 'availability-status': true,
                 'status-available':
-                  hotel.is_available /* backend'den gelen is_available flag'i */,
+                  hotel.is_available ,
                 'status-unavailable':
-                  !hotel.is_available /* is_available false ise */,
+                  !hotel.is_available,
               }"
             >
               {{ hotel.availability_status }}
@@ -124,11 +124,12 @@
                 {{ amenity.trim() }}
               </span>
             </div>
-           
+
             <div class="hotel-rating">
-  <span class="rating-score">{{ hotel.rating }}</span>
-  <span class="rating-text">{{ getRatingText(hotel.rating) }}</span> <span class="review-count">({{ hotel.review_count }} yorum)</span>
-</div>
+              <span class="rating-score">{{ hotel.rating }}</span>
+              <span class="rating-text">{{ getRatingText(hotel.rating) }}</span>
+              <span class="review-count">({{ hotel.review_count }} yorum)</span>
+            </div>
             <div class="hotel-price-info">
               <p class="original-price" v-if="hotel.discount_percentage > 0">
                 {{ hotel.price.toFixed(2) }} TL
@@ -180,18 +181,18 @@
 <script>
 import axios from "axios";
 import { mapGetters, mapActions } from "vuex";
-import Datepicker from "@vuepic/vue-datepicker"; // YENİ: Sadece bu kalsın
-import "@vuepic/vue-datepicker/dist/main.css"; // YENİ: Sadece bu kalsın
+import Datepicker from "@vuepic/vue-datepicker"; 
+import "@vuepic/vue-datepicker/dist/main.css"; 
 
 export default {
   name: "HomeView",
   components: {
-    Datepicker, // Bileşeni kaydet
+    Datepicker, 
   },
   data() {
     return {
       searchParams: {
-        city: null, // Varsayılan bir şehirle başla
+        city: null, 
         checkInDate: null,
         checkOutDate: null,
         guestCount: 2,
@@ -199,7 +200,7 @@ export default {
       },
       hotels: [],
       hotelName: "",
-      dateRange: [null, null], // YENİ: Vuepic Datepicker için tarih aralığı tutacak
+      dateRange: [null, null], 
       sortOrder: "recommended",
     };
   },
@@ -207,20 +208,16 @@ export default {
     ...mapGetters(["isAuthenticated", "userName", "user"]),
   },
   created() {
-    // İlk yüklendiğinde varsayılan tarihleri ayarla
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    this.dateRange = [today, tomorrow]; // Datepicker'a varsayılan değerleri ata
-    this.searchParams.checkInDate = today; // searchParams'a da ata
-    this.searchParams.checkOutDate = tomorrow; // searchParams'a da ata
+    this.dateRange = [today, tomorrow]; 
+    this.searchParams.checkInDate = today; 
+    this.searchParams.checkOutDate = tomorrow; 
     this.fetchHotels(this.searchParams.city, "", this.sortOrder);
   },
   methods: {
     ...mapActions(["logout"]),
-
-    // Tarihleri D.MM.YYYY formatında göstermek için metod
-    // YENİ: Hem tek tarih hem de aralık için uyumlu hale getirildi
     customDateFormatter(date) {
       if (Array.isArray(date)) {
         if (date[0] && date[1]) {
@@ -234,7 +231,7 @@ export default {
           const year2 = d2.getFullYear();
           return `${day1}.${month1}.${year1} - ${day2}.${month2}.${year2}`;
         }
-        return "Tarihleri Seçin"; // Aralık boşsa
+        return "Tarihleri Seçin"; 
       } else if (date) {
         const d = new Date(date);
         const day = String(d.getDate()).padStart(2, "0");
@@ -262,45 +259,21 @@ export default {
       // Tarih değiştiğinde otelleri yeniden çek
       this.fetchHotels(this.searchParams.city, this.hotelName, this.sortOrder);
     },
-
-    // handleCheckInDateSelected ve handleCheckOutDateSelected artık kullanılmayacak
-    // çünkü @vuepic/vue-datepicker tek bir aralık seçici olarak kullanılıyor.
-    // Bu metodları silebiliriz veya yoruma alabiliriz.
-    /*
-    handleCheckInDateSelected(date) {
-      this.searchParams.checkInDate = date;
-      if (
-        this.searchParams.checkOutDate &&
-        date > this.searchParams.checkOutDate
-      ) {
-        this.searchParams.checkOutDate = new Date(date);
+    getRatingText(rating) {
+      if (rating >= 9) {
+        return "Mükemmel";
+      } else if (rating >= 8) {
+        return "Çok İyi";
+      } else if (rating >= 7) {
+        return "İyi";
+      } else if (rating >= 6) {
+        return "Ortalama";
+      } else {
+        return "Kötü"; 
       }
     },
-    handleCheckOutDateSelected(date) {
-      this.searchParams.checkOutDate = date;
-      if (
-        this.searchParams.checkInDate &&
-        date < this.searchParams.checkInDate
-      ) {
-        this.searchParams.checkInDate = new Date(date);
-      }
-    },*/
-    getRatingText(rating) {
-    if (rating >= 9) {
-  return 'Mükemmel';
-    } else if (rating >= 8) {
-      return 'Çok İyi';
-    } else if (rating >= 7) {
-      return 'İyi';
-    } else if (rating >= 6) {
-      return 'Ortalama';
-    } else {
-      return 'Kötü'; // Veya 'Yetersiz', 'Düşük Puan'
-    }
-  },
-    
+
     applySorting() {
-      // Mevcut arama parametreleriyle otelleri yeniden çek (sıralama parametresiyle birlikte)
       this.fetchHotels(this.searchParams.city, this.hotelName, this.sortOrder);
     },
     async fetchHotels(city = "", hotelName = "", sort = "recommended") {
@@ -314,8 +287,6 @@ export default {
         if (hotelName) {
           queryParams.push(`name=${encodeURIComponent(hotelName)}`);
         }
-        // Tarih parametrelerini ekleyelim (backend destekliyorsa)
-        // Eğer backend'iniz tarih filtrelemesini destekliyorsa buraya eklemeniz gerekir.
         if (this.searchParams.checkInDate) {
           queryParams.push(
             `checkInDate=${this.searchParams.checkInDate.toISOString()}`
@@ -333,7 +304,6 @@ export default {
           queryParams.push(`roomCount=${this.searchParams.roomCount}`);
         }
         if (sort && sort !== "recommended") {
-          // "recommended" varsayılan olduğu için göndermeye gerek yok
           queryParams.push(`orderBy=${encodeURIComponent(sort)}`);
         }
 
@@ -343,19 +313,11 @@ export default {
         console.log("Gönderilen API URL'si (fetchHotels):", url);
         const response = await axios.get(url);
         console.log("API'den gelen ham veri (fetchHotels):", response.data);
-
-        // API'den gelen veride amenities diziyse map etmeye gerek yok
-        // Eğer amenities hala virgülle ayrılmış bir string ise bu map'i tutun.
         this.hotels = response.data.map((hotel) => ({
           ...hotel,
           price: parseFloat(hotel.price),
           member_price: parseFloat(hotel.member_price),
           rating: parseFloat(hotel.rating), // Rating'i de parseFloat yap
-
-          // amenities: hotel.amenities // Backend'den zaten dizi olarak geliyorsa
-          // amenities: hotel.amenities // Eğer hala string geliyorsa
-          //  ? hotel.amenities.split(",").map((s) => s.trim())
-          //  : [],
         }));
         console.log("Oteller başarıyla çekildi:", this.hotels);
       } catch (error) {
@@ -364,7 +326,7 @@ export default {
     },
     searchHotels() {
       console.log("Şehir Ara butonu tıklandı! Şehir:", this.searchParams.city);
-      this.fetchHotels(this.searchParams.city, ""); // Şehir ve diğer parametrelerle ara
+      this.fetchHotels(this.searchParams.city, "");
     },
     navigateToLogin() {
       this.$router.push("/login");
@@ -372,16 +334,12 @@ export default {
     viewHotelDetails(hotelId) {
       this.$router.push(`/hotel/${hotelId}`);
     },
-    // YENİ: Haritada Göster Metodu
     showAllHotelsOnMap() {
-      // Şehir araması yapılmışsa
       if (this.searchParams.city && !this.hotelName) {
         const query = encodeURIComponent(this.searchParams.city + ", Türkiye");
-        // Google Haritalar'da şehri arar (Önerilen güncel format)
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
         window.open(mapUrl, "_blank");
       }
-      // Otel adına göre arama yapılmış ve tek bir sonuç dönmüşse VE koordinatları varsa
       else if (
         this.hotelName &&
         this.hotels.length === 1 &&
@@ -389,16 +347,13 @@ export default {
         this.hotels[0].longitude
       ) {
         const hotel = this.hotels[0];
-        const lat = parseFloat(hotel.latitude); // Sayısal değere dönüştür
-        const lng = parseFloat(hotel.longitude); // Sayısal değere dönüştür
-        // Google Haritalar'da belirli bir enlem/boylamı gösterir ve otel adını da ekler
-        // query_place_id eklenebilirse daha iyi olur ama zorunlu değil
+        const lat = parseFloat(hotel.latitude); 
+        const lng = parseFloat(hotel.longitude); 
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${
           hotel.place_id || ""
         }`;
         window.open(mapUrl, "_blank");
       }
-      // Otel adına göre arama yapılmış ancak tek bir sonuç dönmemiş veya koordinat bilgisi eksikse
       else if (
         this.hotelName &&
         (this.hotels.length === 0 ||
@@ -410,7 +365,6 @@ export default {
           "Aranan otele ait kesin konum bilgisi bulunamadı, birden fazla otel bulundu veya konum verisi eksik. Lütfen şehre göre arama yapmayı deneyin."
         );
       }
-      // Hiçbir arama yapılmamışsa
       else {
         alert(
           "Haritada göstermek için bir şehir veya otel araması yapmalısınız."
@@ -419,7 +373,6 @@ export default {
     },
     searchByName() {
       console.log("Otel adına göre ara tıklandı!", this.hotelName);
-      // Şehir parametresini boş bırakarak sadece otel adına göre arama yapıyoruz
       this.fetchHotels("", this.hotelName);
     },
     async handleLogout() {
@@ -429,24 +382,19 @@ export default {
   },
 };
 </script>
-
 <style scoped>
-/* Mevcut stil kodlarınız aynı kalabilir */
-/* Sadece logout-button için yeni bir stil ekleyebilirsiniz */
 .logout-button {
-  background-color: #dc3545; /* Kırmızı renk */
+  background-color: #dc3545; 
   color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 10px; /* Giriş yap/Hoş geldiniz mesajından biraz boşluk */
+  margin-left: 10px; 
 }
-
 .logout-button:hover {
   background-color: #c82333;
 }
-/* Diğer stil kuralları yukarıdaki gibidir */
 .header {
   display: flex;
   justify-content: space-between;
@@ -466,7 +414,6 @@ export default {
 }
 
 .user-info {
-  /* user-info için de flex ekleyelim ki butonlar yan yana gelsin */
   display: flex;
   align-items: center;
 }
@@ -486,7 +433,7 @@ export default {
 }
 
 .search-section {
-  background-color: #003580; /* Booking.com blue */
+  background-color: #003580; 
   padding: 2rem;
   color: white;
   text-align: center;
@@ -498,7 +445,7 @@ export default {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  flex-wrap: wrap; 
 }
 
 .search-item {
@@ -509,25 +456,25 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  height: 30px;
 }
 
 .search-item label {
   font-weight: bold;
 }
 
-/* Datepicker input'ları için stil */
 .datepicker-input {
   border: none;
   outline: none;
   padding: 0.2rem;
-  width: 100px; /* Genişliği ayarlayabilirsiniz */
+  width: 100px; 
   text-align: center;
 }
 
 .date-picker-container {
   display: flex;
   align-items: center;
-  gap: 5px; /* Tarihler ve ayırıcı arasındaki boşluk */
+  gap: 5px; 
 }
 
 .date-separator {
@@ -546,7 +493,7 @@ export default {
 }
 
 .search-button {
-  background-color: #007bff; /* Primary button color */
+  background-color: #007bff; 
   color: white;
   border: none;
   padding: 0.7rem 1.5rem;
@@ -582,7 +529,7 @@ export default {
 }
 
 .map-button {
-  background-color: #6c757d; /* Grey button */
+  background-color: #6c757d;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -614,7 +561,7 @@ export default {
 
 .hotel-details {
   padding: 1rem;
-  flex-grow: 1; /* Allows details section to expand */
+  flex-grow: 1; 
 }
 
 .hotel-name {
@@ -651,7 +598,7 @@ export default {
 }
 
 .rating-score {
-  background-color: #00aa6c; /* Green for good rating */
+  background-color: #00aa6c; 
   color: white;
   padding: 0.2rem 0.5rem;
   border-radius: 3px;
@@ -695,7 +642,7 @@ export default {
 }
 
 .discount-percentage {
-  background-color: #dc3545; /* Red for discount */
+  background-color: #dc3545; 
   color: white;
   padding: 0.2rem 0.5rem;
   border-radius: 3px;
@@ -717,7 +664,7 @@ export default {
 .member-price-display {
   font-size: 1rem;
   font-weight: bold;
-  color: #28a745; /* Green for member price */
+  color: #28a745; 
 }
 
 .details-button {
@@ -761,7 +708,7 @@ export default {
 }
 
 .no-hotels-message {
-  grid-column: 1 / -1; /* Spans all columns */
+  grid-column: 1 / -1; 
   text-align: center;
   padding: 2rem;
   font-size: 1.2rem;
@@ -770,9 +717,6 @@ export default {
   border-radius: 8px;
   border: 1px dashed #ccc;
 }
-
-/* frontend/src/views/HomeView.vue - <style scoped> etiketinin içine */
-
 .sort-options label {
   margin-right: 0.5rem;
   font-weight: bold;

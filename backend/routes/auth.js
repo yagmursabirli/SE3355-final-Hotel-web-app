@@ -4,18 +4,18 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const passport = require('passport');
 
-// Kayıt rotası
+// Kayıt
 router.post('/register', authController.registerUser);
 
-// Giriş rotası
+// Giriş 
 router.post('/login', authController.loginUser);
 
 router.get('/google',
-    authController.googleAuth // authController'daki passport.authenticate çağrısı
+    authController.googleAuth 
 );
 router.get('/google/callback',
-    passport.authenticate('google', { failureRedirect: 'http://localhost:8080/login?error=auth_failed' }), // Kimlik doğrulama başarısız olursa frontend'deki login sayfasına yönlendir
-    authController.googleAuthCallback // Kimlik doğrulama başarılı olursa bu controller'ı çalıştır
+    passport.authenticate('google', { failureRedirect: 'http://localhost:8080/login?error=auth_failed' }), 
+    authController.googleAuthCallback 
 );
 
 router.post('/logout', authController.logout);

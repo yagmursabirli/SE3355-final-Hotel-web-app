@@ -17,8 +17,8 @@ exports.getAllHotels = async (req, res) => {
           hotels
       `;
     const queryParams = [];
-    let whereClauses = []; // WHERE koşullarını tutmak için dizi kullanıyoruz
-    let paramIndex = 1; //
+    let whereClauses = []; 
+    let paramIndex = 1; 
 
     if (city) {
       whereClauses.push(`city ILIKE $${paramIndex}`);
@@ -26,25 +26,25 @@ exports.getAllHotels = async (req, res) => {
       paramIndex++;
     }
 
-    if (name) { // BURASI YENİ EKLENDİ: Otel adına göre filtreleme
+    if (name) { 
       whereClauses.push(`name ILIKE $${paramIndex}`);
       queryParams.push(`%${name}%`);
       paramIndex++;
     }
-    // YENİ EKLENEN KISIM: Misafir sayısına göre filtreleme
+   
     if (guestCount) {
       whereClauses.push(`max_guests >= $${paramIndex}`);
       queryParams.push(parseInt(guestCount));
       paramIndex++;
     }
     if (roomCount) {
-      whereClauses.push(`available_rooms >= $${paramIndex}`); // Varsayım: 'available_rooms' sütunu var
+      whereClauses.push(`available_rooms >= $${paramIndex}`); 
       queryParams.push(parseInt(roomCount));
       paramIndex++;
     }
 
     if (whereClauses.length > 0) {
-      query += ` WHERE ${whereClauses.join(' AND ')}`; // Koşulları AND ile birleştiriyoruz
+      query += ` WHERE ${whereClauses.join(' AND ')}`; 
     }
 
      switch (orderBy) {
@@ -60,55 +60,45 @@ exports.getAllHotels = async (req, res) => {
       case 'price_desc':
         query += ` ORDER BY price DESC`;   // Fiyata göre azalan
         break;
-      case 'recommended': // Varsayılan olarak "önerilen" (points)
+      case 'recommended': // Varsayılan olarak "önerilen"
       default:
-        query += ` ORDER BY rating DESC`; // Eğer 'points' sütununuz yoksa, 'rating DESC' gibi bir şey yapabilirsiniz.
+        query += ` ORDER BY rating DESC`; 
         break;
     }
-    console.log("Backend SQL Sorgusu:", query); // Oluşan SQL sorgusunu loglayın
+    console.log("Backend SQL Sorgusu:", query); 
     console.log("Backend Sorgu Parametreleri:", queryParams);
 
     const result = await pool.query(query, queryParams);
-     // Seçilen tarihleri parse et (Frontend'den gelen tarih stringleri)
     const parsedCheckInDate = checkInDate ? new Date(checkInDate) : null;
     const parsedCheckOutDate = checkOutDate ? new Date(checkOutDate) : null;
 
      const hotelsWithAvailability = result.rows.map(hotel => {
       let isAvailable = true; // Varsayılan olarak otel müsait
       let availabilityStatus = 'Müsait';
-      // Rezervasyon almadığımız için, eğer müsaitse tüm odaları müsait kabul edebiliriz
-      //let availableRoomsForDates = hotel.total_rooms || 0; 
 
-      // Eğer giriş ve çıkış tarihleri seçilmişse, müsait olmayan tarihlerle çakışma kontrolü yap
+
+      
       if (parsedCheckInDate && parsedCheckOutDate) {
         if (hotel.unavailable_dates && Array.isArray(hotel.unavailable_dates)) {
           for (const range of hotel.unavailable_dates) {
             const unavailableStart = new Date(range.start);
             const unavailableEnd = new Date(range.end);
 
-            // Çakışma kontrolü:
-            // İstenen aralık (A) ve müsait olmayan aralık (B)
-            // A = [parsedCheckInDate, parsedCheckOutDate]
-            // B = [unavailableStart, unavailableEnd]
-            // Çakışma var = (A.başlangıç < B.bitiş) VE (A.bitiş > B.başlangıç)
+          
             if (parsedCheckInDate < unavailableEnd && parsedCheckOutDate > unavailableStart) {
               isAvailable = false; // Çakışma var, otel müsait değil
               availabilityStatus = 'Seçilen tarihlerde uygun oda yok❗';
-              //
-              // availableRoomsForDates = 0; // Müsait değilse oda sayısı 0
-              break; // Bir çakışma bulmak yeterli, diğer aralıkları kontrol etmeye gerek yok
+              break; 
             }
           }
         }
       }
 
-      // Frontend'e gönderilecek otel nesnesini oluştur
+      // Frontend'e gönderilecek otel nesnesi
       return {
         ...hotel,
-        is_available: isAvailable, // Otelin genel müsaitlik durumu (boolean)
-        //available_rooms_for_dates: availableRoomsForDates, // Müsaitse total_rooms, değilse 0
-        availability_status: availabilityStatus, // Metin mesajı
-        // Frontend'in beklediği sayısal/dizi formatlarına dönüştürmeler
+        is_available: isAvailable, 
+        availability_status: availabilityStatus,
         rating: parseFloat(hotel.rating),
         price: parseFloat(hotel.price),
         member_price: parseFloat(hotel.member_price),
@@ -117,14 +107,12 @@ exports.getAllHotels = async (req, res) => {
     });
 
     res.json(hotelsWithAvailability);
-    //res.json(result.rows);
   } catch (err) {
     console.error('Otel listesi çekilirken hata oluştu:', err.message);
     res.status(500).send('Sunucu Hatası');
   }
 };
 
-// Tek bir otelin detaylarını ve yorumlarını ID'ye göre getirme İşlevi
 exports.getHotelById = async (req, res) => {
   const { id } = req.params;
 
