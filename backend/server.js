@@ -1,5 +1,5 @@
 // backend/server.js
-/*const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const bcrypt = require('bcrypt');
@@ -21,7 +21,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key_here';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'your_secret_session_key'; 
 
 app.use(cors({
-    origin: 'http://localhost:8080', 
+    origin: process.env.CORS_ORIGIN,
     credentials: true, 
 }));
 
@@ -74,4 +74,4 @@ app.listen(port, () => {
     pool.query('SELECT 1+1 AS solution')
         .then(res => console.log('Veritabanı bağlantı testi başarılı:', res.rows[0].solution))
         .catch(err => console.error('Veritabanı bağlantı testi hatası:', err.message));
-});*/
+});
