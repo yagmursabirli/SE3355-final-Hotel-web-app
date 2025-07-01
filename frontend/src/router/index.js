@@ -12,7 +12,12 @@ const routes = [{
   {
     path: '/login',
     name: 'login',
-    component: LoginPage
+    component: LoginPage,
+    props: route => ({
+      token: route.query.token,
+      firstName: route.query.firstName,
+      email: route.query.email,
+    })
   },
   {
     path: '/hotel/:id', 
