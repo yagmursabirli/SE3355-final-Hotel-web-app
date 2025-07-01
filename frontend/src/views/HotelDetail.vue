@@ -282,7 +282,7 @@ export default {
       try {
         // Gerçek API'den otel bilgilerini ve yorumları çekiyoruz
         const response = await axios.get(
-          `http://localhost:3000/api/hotels/${this.id}`
+          `/api/hotels/${this.id}`
         );
 
         this.hotel = {

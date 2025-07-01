@@ -278,7 +278,7 @@ export default {
     },
     async fetchHotels(city = "", hotelName = "", sort = "recommended") {
       try {
-        let url = `http://localhost:3000/api/hotels`;
+        let url = `/api/hotels`;
         const queryParams = [];
 
         if (city) {
