@@ -179,8 +179,8 @@ exports.googleAuthCallback = (req, res) => {
 
     // Başarılı giriş sonrası kullanıcıyı frontend'e JWT ile yönlendir
     // Token'ı URL parametresi olarak gönderiyoruz. Frontend bunu yakalayacak.
-    const redirectUrl = `http://localhost:8080/login?token=${token}&firstName=${req.user.first_name}&email=${req.user.email}`;
-    res.redirect(redirectUrl);
+ const redirectUrl = `${process.env.CORS_ORIGIN}/login?token=${token}&firstName=${req.user.first_name}&email=${req.user.email}`;
+res.redirect(redirectUrl);
 };
 
 // Kullanıcı çıkışı (Logout) için bir rota
