@@ -4,7 +4,7 @@
 //    Bu, backend/server.js dosyanızın başındaki require satırlarının aynısı olmalı.
 const express = require('express');
 const cors = require('cors');
-const pool = require('../db'); // db.js yolunu kontrol edin, api klasöründen 2 seviye yukarı
+const pool = require('./db'); // db.js yolunu kontrol edin, api klasöründen 2 seviye yukarı
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // dotenv config'i burada farklı olacak, aşağıdaki 2. maddeye bakın
@@ -65,8 +65,8 @@ passport.deserializeUser(async (id, done) => {
 // 5. Rota dosyalarını içeri aktarın ve kullanın.
 //    Yol tanımlamalarını (require('./routes/auth')) api klasörüne göre düzeltmeniz gerekiyor.
 //    api klasörü, routes klasörünün bir üst dizininin içindeki 'backend' klasörüyle aynı seviyede olduğu için '../backend/routes/' kullanıyoruz.
-const authRoutes = require('../routes/auth');
-const hotelRoutes = require('../routes/hotels');
+const authRoutes = require('./routes/auth');
+const hotelRoutes = require('./routes/hotels');
 
 // Genel bir API ana rotası (isteğe bağlı, API'nizin çalıştığını görmek için)
 app.get('/', (req, res) => {
