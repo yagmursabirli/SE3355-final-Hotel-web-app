@@ -55,7 +55,7 @@ The application's data is structured across several interconnected tables in a P
 * **`hotels` Table:**
     * Contains information about various hotels listed in the application.
     * fields: `hotel_id` (Primary Key), `name`, `description`, `address`, `city`, `country`, `rating`, `amenities`, `review_count`, `price`, `discount_percentage`, `member_price`,
-    * `image_url', `description`, `points`, `latitude`, `longitude`, `max_guests`, `available_rooms`, `unavailable_dates`.
+    * `image_url`, `description`, `points`, `latitude`, `longitude`, `max_guests`, `available_rooms`, `unavailable_dates`.
 * **`comments` Table:**
     * Stores user comments or reviews related to hotels.
     * includes: `comment_id`, `user_id`, `hotel_id`, `comment`, `cleanliness_rating`, `service_rating`, `amenities_rating`, `condition_rating`, `environment_rating`, 
