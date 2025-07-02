@@ -54,12 +54,12 @@ The application's data is structured across several interconnected tables in a P
     * `email` and `google_id` fields ensure distinct user accounts.
 * **`hotels` Table:**
     * Contains information about various hotels listed in the application.
-    * fields: `hotel_id` (Primary Key), `name`, `description`, `address`, `city`, `country`, `rating`, `amenities`, 'review_count', 'price', 'discount_percentage', 'member_price',
-    * `image_url', 'description', 'points', 'latitude', 'longitude', 'max_guests', 'available_rooms', 'unavailable_dates', .
+    * fields: `hotel_id` (Primary Key), `name`, `description`, `address`, `city`, `country`, `rating`, `amenities`, 'review_count', 'price', `discount_percentage`, `member_price`,
+    * `image_url', `description`, `points`, `latitude`, `longitude`, `max_guests`, `available_rooms`, `unavailable_dates`.
 * **`comments` Table:**
     * Stores user comments or reviews related to hotels.
-    * includes: `comment_id`, `user_id`, `hotel_id`, 'comment', 'cleanliness_rating', 'service_rating', 'amenities_rating', 'condition_rating', 'environment_rating', 
-    *  `rating`, `created_at`, 'user_first_name', 'trip_type', 'reply', 'reply_by', 'reply_date'.
+    * includes: `comment_id`, `user_id`, `hotel_id`, 'comment', `cleanliness_rating`, `service_rating`, `amenities_rating`, `condition_rating`, `environment_rating`, 
+    *  `rating`, `created_at`, `user_first_name`, `trip_type`, `reply`, `reply_by`, `reply_date`.
  
 ## 🚧 Challenges Faced
 * **Seamless Google OAuth Integration:** Integrating Google OAuth for user login was a significant challenge.
